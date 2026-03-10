@@ -1,0 +1,9 @@
+{
+  "name": "example-plugin",
+  "description": "A starter plugin demonstrating commands, skills, and plugin structure",
+  "version": "1.0.0",
+  "author": {
+    "name": "weilueluo",
+    "email": "luoweilue@gmail.com"
+  }
+}
