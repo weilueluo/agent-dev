@@ -1,0 +1,15 @@
+{
+  "name": "agent-pipeline",
+  "description": "Production multi-stage delivery pipeline: Orchestrator → Explorer → Planner → Plan Critic → Implementer → Tester → Reviewer → Replanner. Handles complex software tasks through structured exploration, adaptive planning, incremental implementation, validation, and review with strict handoff contracts and quality gates.",
+  "version": "2.1.0",
+  "author": {
+    "name": "weilueluo",
+    "email": "luoweilue@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["pipeline", "planning", "review", "testing", "delivery", "orchestration"],
+  "category": "development",
+  "agents": "agents/",
+  "skills": "skills/",
+  "hooks": "hooks.json"
+}

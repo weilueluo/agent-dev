@@ -1,0 +1,50 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "description": "Inject agent-pipeline operating rules and available capabilities at session start",
+      "steps": [
+        {
+          "type": "context",
+          "message": "The agent-pipeline plugin is active. Operating rules are in CLAUDE.md. Available agents: orchestrator, explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) Every stage emits a strict YAML handoff artifact. (2) Revise = implementation issue, strategy valid. Replan = strategy flawed. (3) Quality gates are mandatory. (4) Planner dynamically chooses perspectives per task."
+        }
+      ]
+    },
+    {
+      "event": "PostToolUse",
+      "description": "Remind about pipeline tracking after file modifications",
+      "conditions": {
+        "toolNames": ["edit", "create"]
+      },
+      "steps": [
+        {
+          "type": "context",
+          "message": "File modified. If executing a pipeline phase: track this change in the implementer_handoff artifact (files_changed field). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
+        }
+      ]
+    },
+    {
+      "event": "PreToolUse",
+      "description": "Warn before modifying protected paths",
+      "conditions": {
+        "toolNames": ["edit", "create"]
+      },
+      "steps": [
+        {
+          "type": "check",
+          "patterns": [
+            "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+            "Cargo.lock", "poetry.lock", "Gemfile.lock", "composer.lock",
+            "**/.env", "**/.env.*", "**/secrets.*", "**/credentials.*",
+            "**/*.key", "**/*.pem",
+            "**/vendor/**", "**/node_modules/**",
+            "**/dist/**", "**/build/**", "**/generated/**",
+            "**/migrations/versions/**"
+          ],
+          "action": "warn",
+          "message": "Protected path detected. This file is guarded by agent-pipeline rules (lock files, secrets, generated files, vendored code). Modification requires explicit plan acknowledgment."
+        }
+      ]
+    }
+  ]
+}
