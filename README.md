@@ -32,6 +32,8 @@ A personal collection of Claude Code plugins by **weilueluo**.
 | Plugin | Description | Category |
 |--------|-------------|----------|
 | `example-plugin` | Starter plugin demonstrating commands, skills, and plugin structure | development |
+| `deliver` | Orchestrator-led delivery pipeline: Explorer → Planner → Plan Critic → Implementer → Tester → Reviewer | development |
+| `plan` | Transforms vague feature ideas into complete feature requests through structured clarification | development |
 
 ## Creating a New Plugin
 
