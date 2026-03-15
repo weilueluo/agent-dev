@@ -1,6 +1,6 @@
-# wll — Claude Code Plugin Marketplace
+# wll — Copilot CLI Plugin Marketplace
 
-A personal collection of Claude Code plugins by **weilueluo**.
+A personal collection of Copilot CLI plugins by **weilueluo**.
 
 ## Quick Start
 
@@ -19,69 +19,25 @@ A personal collection of Claude Code plugins by **weilueluo**.
 ### Install a plugin
 
 ```
-/plugin install example-plugin@wll
+/plugin install deliver@wll
 ```
-
-## Structure
-
-- **`/plugins`** — Internal plugins developed and maintained by weilueluo
-- **`/external_plugins`** — Third-party plugins and integrations
 
 ## Available Plugins
 
-| Plugin | Description | Category |
-|--------|-------------|----------|
-| `example-plugin` | Starter plugin demonstrating commands, skills, and plugin structure | development |
-| `deliver` | Orchestrator-led delivery pipeline: Explorer → Planner → Plan Critic → Implementer → Tester → Reviewer | development |
-| `plan` | Transforms vague feature ideas into complete feature requests through structured clarification | development |
+| Plugin | Version | Description |
+|--------|---------|-------------|
+| [`deliver`](plugins/deliver/) | 3.0.0 | Production multi-stage delivery pipeline — orchestrates exploration, planning, critique, implementation, testing, and review |
+| [`plan`](plugins/plan/) | 1.0.0 | Transforms vague feature ideas into complete feature requests through structured clarification |
 
-## Creating a New Plugin
-
-1. Create a new directory under `plugins/`:
+## Repository Structure
 
 ```
-plugins/my-new-plugin/
-├── .claude-plugin/
-│   └── plugin.json        # Required: plugin metadata
-├── commands/              # Optional: slash commands
-├── skills/                # Optional: agent skills
-├── agents/                # Optional: sub-agents
-├── hooks/                 # Optional: event hooks
-├── .mcp.json              # Optional: MCP server config
-├── .lsp.json              # Optional: LSP server config
-├── README.md
-└── LICENSE
+├── plugins/            # Plugins developed and maintained by weilueluo
+│   ├── deliver/        # Delivery pipeline plugin
+│   └── plan/           # Feature planning plugin
+├── external_plugins/   # Third-party plugins and integrations
+└── .github/            # GitHub & marketplace config
 ```
-
-2. Add a `plugin.json` manifest:
-
-```json
-{
-  "name": "my-new-plugin",
-  "description": "What your plugin does",
-  "version": "1.0.0",
-  "author": {
-    "name": "weilueluo",
-    "email": "luoweilue@gmail.com"
-  }
-}
-```
-
-3. Add the plugin entry to `.claude-plugin/marketplace.json`
-
-4. Test locally:
-
-```bash
-claude --plugin-dir ./plugins/my-new-plugin
-```
-
-5. Commit and push — users update via `/plugin marketplace update`
-
-## Documentation
-
-- [Official Plugin Docs](https://code.claude.com/docs/en/plugins)
-- [Marketplace Docs](https://code.claude.com/docs/en/plugin-marketplaces)
-- [Plugin Reference](https://code.claude.com/docs/en/plugins-reference)
 
 ## License
 
