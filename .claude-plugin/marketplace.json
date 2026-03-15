@@ -32,6 +32,18 @@
       "source": "./plugins/deliver",
       "category": "development",
       "keywords": ["pipeline", "planning", "review", "testing", "delivery"]
+    },
+    {
+      "name": "plan",
+      "description": "Transforms vague feature ideas into complete feature requests through structured clarification. Analyzes the repository, detects ambiguity, asks targeted questions, and produces fully resolved specifications.",
+      "version": "1.0.0",
+      "author": {
+        "name": "weilueluo",
+        "email": "luoweilue@gmail.com"
+      },
+      "source": "./plugins/plan",
+      "category": "development",
+      "keywords": ["planning", "feature-request", "clarification", "requirements", "specification"]
     }
   ]
 }
