@@ -106,7 +106,7 @@ plan_for_review:
 
 ---
 
-## Plan Critic → Orchestrator
+## Plan Critic → Deliver Skill
 
 ```yaml
 critic_handoff:
@@ -203,7 +203,7 @@ tester_handoff:
 
 ---
 
-## Reviewer → Orchestrator (Final Disposition)
+## Reviewer → Deliver Skill (Final Disposition)
 
 ```yaml
 reviewer_handoff:
@@ -253,7 +253,7 @@ replan_handoff:
 
 ---
 
-## Replanner → Orchestrator
+## Replanner → Deliver Skill
 
 ```yaml
 replanner_handoff:

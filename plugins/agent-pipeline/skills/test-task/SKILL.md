@@ -1,7 +1,7 @@
 ---
 name: test-task
 description: "Validate implementation against acceptance criteria. Classifies failures, estimates confidence, reports residual risk."
-version: 2.1.0
+version: 3.0.0
 ---
 
 # test-task
@@ -15,14 +15,21 @@ Verify the implementation works and assess delivery readiness.
 
 ## Inputs
 
-- **implementer_handoff**: What changed and where to focus
-- **planner_handoff**: Acceptance criteria to validate against
+- **implementation_report**: What changed and where to focus
+- **plan**: Acceptance criteria to validate against
 - **mode**: Testing depth (quick/standard/deep/high-risk)
 
 ## Process
 
-See `agents/tester.agent.md` for the full reasoning framework. Key steps: map criteria to checks → establish baseline → run checks → write tests for gaps → classify failures → assess per-criterion status → estimate confidence → document residual risk.
+1. Map each acceptance criterion to a verification method
+2. Establish baseline — run existing tests first if possible
+3. Run checks — build, typecheck, lint, test suite
+4. Write tests for gaps following project conventions
+5. Classify failures: blocking, degraded, cosmetic
+6. Assess per-criterion status: passed, partial, failed, untested, blocked
+7. Estimate confidence honestly — high (>90%), medium (70-90%), low (<70%)
+8. Report residual risk
 
 ## Output
 
-A `tester_handoff` per `knowledge/handoff-schemas.md`: validation strategy, checks run with results, failures classified, coverage gaps, residual risk, confidence level, and recommendation (proceed / revise / replan).
+Test report: validation strategy, checks run with results, failures classified, coverage gaps, residual risk, confidence level, and recommendation (proceed / revise / replan).

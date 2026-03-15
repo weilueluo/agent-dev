@@ -1,7 +1,7 @@
 ---
 name: critique-plan
 description: "Evaluate a plan before implementation. Checks completeness, feasibility, sequencing, assumptions, risks, and criteria clarity."
-version: 2.1.0
+version: 3.0.0
 ---
 
 # critique-plan
@@ -10,23 +10,27 @@ Review a plan and catch problems before implementation begins.
 
 ## When to Use
 
-- Mandatory in deep and high-risk modes
-- Recommended in standard mode for complex plans
+- Preferred in deep and high-risk modes
+- Recommended for complex plans in standard mode
 - When re-evaluating a revised plan
 
 ## Inputs
 
-- **plan_artifact**: The planner handoff
-- **exploration_report**: Explorer handoff for cross-reference
+- **plan**: The plan to evaluate
+- **exploration_report**: Exploration findings for cross-reference
 - **iteration**: Which critique pass (1st, 2nd, etc.)
 
 ## Process
 
-See `agents/plan-critic.agent.md` for the full reasoning framework. Key areas: cross-reference with exploration → evaluate dimensions (completeness, feasibility, sequencing, assumptions, risks, rollback, criteria) → check against anti-patterns in planning-patterns.md → decide.
+1. Cross-reference plan against exploration findings
+2. Evaluate dimensions: completeness, feasibility, sequencing, dependency clarity, acceptance clarity, rollback readiness, risk coverage
+3. Check against anti-patterns from `knowledge/planning-patterns.md`
+4. In deep/high-risk mode, verify multiple strategies were considered
+5. Decide: **accept**, **revise-plan**, or **re-explore**
 
 ## Output
 
-A `critic_handoff` with: decision (accept / revise-plan / re-explore), dimension assessments, specific issues with suggestions, strengths to preserve, and actionable guidance.
+Critique report with: decision, dimension assessments, specific issues with suggestions, strengths to preserve, and actionable guidance.
 
 ## Escalation
 

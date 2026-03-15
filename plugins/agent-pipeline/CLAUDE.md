@@ -6,8 +6,8 @@ Persistent rules for every pipeline execution.
 
 ## Core Principles
 
-- **Handoff artifacts are required.** Every stage produces a structured output for the next stage. Schemas are in `knowledge/handoff-schemas.md`.
-- **Static agent set.** 7 agents, no runtime creation. Dynamic analysis happens through perspective generation, not new agents.
+- **Deliver is the orchestrator.** The deliver skill manages the pipeline directly — classifying tasks, choosing modes, working through phases, and routing feedback loops. Specialist agents are optional helpers for focused delegation.
+- **Inline by default, delegate when useful.** Each phase can be performed inline by the deliver skill or delegated to a specialist agent. The pipeline works correctly either way.
 - **Revise ≠ Replan.** Revise = strategy is sound, fix the implementation. Replan = strategy is flawed, go back to planning. When in doubt: "Is the plan wrong, or was the execution wrong?"
 - **Domain-agnostic.** Works for software, migrations, refactors, infrastructure, research, and other complex work.
 
@@ -31,16 +31,16 @@ Do not modify without explicit approval: generated files, lock files, secrets/cr
 
 ## Feedback Loops
 
-All routing goes through the orchestrator:
+The deliver skill manages all feedback routing:
 
 | Signal | Source | Routes To | Max Cycles |
 |--------|--------|-----------|------------|
-| `revise-plan` | Critic | Planner | 2 |
-| `re-explore` | Critic | Explorer | 1 |
-| `revise` | Reviewer | Implementer | 2 |
-| `replan` | Reviewer | Replanner → Planner | 1 |
-| `revise` | Tester | Implementer | 2 |
-| `replan` | Tester | Replanner → Planner | 1 |
+| `revise-plan` | Critic | Planning phase | 2 |
+| `re-explore` | Critic | Exploration phase | 1 |
+| `revise` | Reviewer | Implementation phase | 2 |
+| `replan` | Reviewer | Replanning → Planning | 1 |
+| `revise` | Tester | Implementation phase | 2 |
+| `replan` | Tester | Replanning → Planning | 1 |
 
 If cycles exhaust, escalate to the user.
 

@@ -6,7 +6,7 @@
       "steps": [
         {
           "type": "context",
-          "message": "The agent-pipeline plugin is active. Operating rules are in CLAUDE.md. Available agents: orchestrator, explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) Every stage emits a strict YAML handoff artifact. (2) Revise = implementation issue, strategy valid. Replan = strategy flawed. (3) Quality gates are mandatory. (4) Planner dynamically chooses perspectives per task."
+          "message": "The agent-pipeline plugin is active. Operating rules are in CLAUDE.md. The deliver skill is the primary orchestrator — it manages the pipeline directly and delegates to specialist agents when useful. Available agents (optional helpers): orchestrator, explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) Revise = implementation issue, strategy valid. Replan = strategy flawed. (2) Planner dynamically chooses perspectives per task. (3) Specialist agents are optional — the pipeline works inline by default."
         }
       ]
     },
@@ -19,7 +19,7 @@
       "steps": [
         {
           "type": "context",
-          "message": "File modified. If executing a pipeline phase: track this change in the implementer_handoff artifact (files_changed field). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
+          "message": "File modified. If executing a pipeline phase: track this change in the implementation record (files_changed). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
         }
       ]
     },

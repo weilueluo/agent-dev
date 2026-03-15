@@ -1,24 +1,24 @@
 ---
 name: replan-task
 description: "Revise a failed strategy. Analyzes what went wrong, preserves valid work, and produces a materially different new plan."
-version: 2.1.0
+version: 3.0.0
 ---
 
 # replan-task
 
-When the reviewer determines the strategy is fundamentally flawed, analyze the failure and design a new approach.
+When the strategy is fundamentally flawed, analyze the failure and design a new approach.
 
 ## When to Use
 
-- Reviewer returned `replan`
+- Review or testing returned `replan`
 - Strategy assumptions proved wrong or approach doesn't work
 
 ## Inputs
 
-- **replan_handoff**: Reviewer's failure analysis
+- **failure_analysis**: What went wrong and why
 - **original_plan**: The plan that failed
 - **exploration_report**: Original exploration context
-- **implementer_handoff**: What was implemented before failure
+- **implementation_report**: What was implemented before failure
 
 ## Process
 
@@ -29,7 +29,7 @@ When the reviewer determines the strategy is fundamentally flawed, analyze the f
 
 ## Output
 
-A `replanner_handoff`: failure analysis, new strategy with rationale, revised phases, preserved vs discarded work, updated risk mitigations.
+Replan report: failure analysis, new strategy with rationale, revised phases, preserved vs discarded work, updated risk mitigations.
 
 ## Constraints
 

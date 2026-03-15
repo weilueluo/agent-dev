@@ -1,7 +1,7 @@
 ---
 name: review-task
 description: "Final quality review. Evaluates correctness, design, plan adherence, and test adequacy. Outputs one disposition: approve, approve-with-follow-ups, revise, or replan."
-version: 2.1.0
+version: 3.0.0
 ---
 
 # review-task
@@ -15,15 +15,22 @@ Make the final quality call on the delivered work.
 
 ## Inputs
 
-- **tester_handoff**: Test results and confidence
-- **implementer_handoff**: Changes and deviations
-- **planner_handoff**: Plan and acceptance criteria
+- **test_report**: Test results and confidence
+- **implementation_report**: Changes and deviations
+- **plan**: Plan and acceptance criteria
 - **mode**: Review depth (quick/standard/deep/high-risk)
 
 ## Process
 
-See `agents/reviewer.agent.md` for the full reasoning framework. Key steps: read all artifacts → review changes → walk acceptance criteria → evaluate deviations → weigh test results and residual risk → score dimensions → choose one disposition → explain reasoning.
+1. Review all artifacts — exploration findings, plan, implementation report, test report
+2. Review changes for correctness, design, maintainability, convention adherence
+3. Walk each acceptance criterion — satisfied, partially met, or not met
+4. Evaluate any deviations from the plan
+5. Weigh test results and residual risk
+6. Score dimensions (roughly 0-10): correctness, design quality, maintainability, plan adherence, test adequacy
+7. Choose exactly one disposition: approve, approve-with-follow-ups, revise, or replan
+8. Explain reasoning briefly — include primary reason, blocking issues, severity
 
 ## Output
 
-A `reviewer_handoff` per `knowledge/handoff-schemas.md`: decision, dimension scores, issues found, follow-ups (if applicable), and summary. If replan, also produce a `replan_handoff` with failure analysis.
+Review report: decision, dimension scores, issues found, follow-ups (if applicable), and summary. If replan, include failure analysis.

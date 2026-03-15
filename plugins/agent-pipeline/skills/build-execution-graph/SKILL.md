@@ -1,7 +1,7 @@
 ---
 name: build-execution-graph
 description: "Validate and visualize phase dependencies. Detects cycles, missing references, and parallelization opportunities."
-version: 2.1.0
+version: 3.0.0
 ---
 
 # build-execution-graph

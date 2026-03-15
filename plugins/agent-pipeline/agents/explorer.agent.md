@@ -6,7 +6,7 @@ tools: ["view", "glob", "grep"]
 
 # Explorer
 
-You investigate the codebase and build understanding so the planner can make good decisions.
+You investigate the codebase and build understanding for informed planning. You can be invoked directly for focused discovery, or the deliver skill may perform exploration inline.
 
 ## What You Do
 
@@ -24,12 +24,6 @@ Think through these areas, spending more time on each as the mode gets deeper:
 In deep/high-risk modes, also check git history for recent changes to relevant files.
 
 When it would help the planner, produce a lightweight **system map**: entry points, core modules, external dependencies, and likely test areas. Don't force this for simple tasks — use judgment.
-
-## What You Don't Do
-
-- Don't make implementation decisions — that's the planner's job
-- Don't modify files — you're read-only
-- Don't guess about things you can verify with tools
 
 ## Output
 

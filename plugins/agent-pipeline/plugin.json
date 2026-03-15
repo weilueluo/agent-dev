@@ -1,7 +1,7 @@
 {
   "name": "agent-pipeline",
-  "description": "Production multi-stage delivery pipeline: Orchestrator → Explorer → Planner → Plan Critic → Implementer → Tester → Reviewer → Replanner. Handles complex software tasks through structured exploration, adaptive planning, incremental implementation, validation, and review with strict handoff contracts and quality gates.",
-  "version": "2.1.0",
+  "description": "Production multi-stage delivery pipeline. The deliver skill orchestrates exploration, planning, critique, implementation, testing, and review — with optional delegation to specialist agents, quality gates, and explicit correction paths.",
+  "version": "3.0.0",
   "author": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"
