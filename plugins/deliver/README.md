@@ -1,33 +1,32 @@
 # Agent Pipeline
 
-A production multi-stage delivery pipeline plugin for GitHub Copilot CLI. The deliver skill orchestrates the full pipeline — exploration, planning, critique, implementation, testing, and review — with optional delegation to specialist agents, quality gates, and explicit correction paths.
+A production multi-stage delivery pipeline plugin for GitHub Copilot CLI. The deliver skill orchestrates the full pipeline — delegating each phase to a specialist agent in sequence, with quality gates and explicit correction paths.
 
 ## Architecture
 
 ```
 deliver skill (orchestrator)
-  ├── exploration      ← inline or → explorer agent
-  ├── planning         ← inline or → planner agent
-  ├── plan critique    ← inline or → plan-critic agent
-  ├── implementation   ← inline or → implementer agent
-  ├── testing          ← inline or → tester agent
-  └── review           ← inline or → reviewer agent
+  ├── Phase 1: Exploration     → explorer agent
+  ├── Phase 2: Planning        → planner agent
+  ├── Phase 3: Plan Critique   → plan-critic agent  (deep/high-risk only)
+  ├── Phase 4: Implementation  → implementer agent
+  ├── Phase 5: Testing         → tester agent       (standard/deep/high-risk)
+  └── Phase 6: Review          → reviewer agent
 ```
 
-The deliver skill is the workflow orchestrator. It manages the pipeline directly — classifying tasks, choosing modes, working through phases in order, and routing feedback loops. Specialist agents are optional helpers that can be invoked for focused delegation when useful, but the pipeline works correctly without them.
+The deliver skill is the pipeline orchestrator. It manages the workflow directly — classifying tasks, choosing modes, running phases in order, and delegating each phase to the corresponding specialist agent. The orchestrator agent is not used by the pipeline; it exists only as a legacy standalone alternative.
 
 ### Why This Architecture
 
-**Linear orchestration** instead of recursive agent spawning:
+**Linear orchestration with explicit delegation**:
 - The deliver skill is the single orchestrator — no nested agent chains
-- Each phase runs inline by default, with optional delegation to specialist agents
-- This is intentionally simple and reliable
+- Each phase is delegated to a dedicated specialist agent
+- Clear phase markers (Phase 1-6) make the pipeline easy to follow
 
-**Specialist agents as optional leaf workers**:
-- 7 agents handle focused roles (exploration, planning, implementation, etc.)
+**Specialist agents as dedicated phase handlers**:
+- 6 specialist agents handle focused roles (exploration, planning, critique, implementation, testing, review)
 - 9 skills provide reusable execution logic
-- Agents are useful when invoked directly or when the deliver skill delegates a phase
-- The pipeline never depends on agents being invoked — it works inline
+- Each agent is purpose-built for its phase
 
 **Adaptive planning** with dynamic perspectives:
 - The planner generates perspectives fresh per task — no hardcoded specialist agents needed
@@ -48,7 +47,7 @@ deliver/
 ├── CLAUDE.md                            # Persistent operating rules
 ├── hooks.json                           # Hook configuration
 ├── agents/
-│   ├── orchestrator.agent.md            # Optional pipeline coordinator (for direct use)
+│   ├── orchestrator.agent.md            # Legacy standalone coordinator (not used by deliver pipeline)
 │   ├── explorer.agent.md               # Discovery — files, constraints, risks, unknowns
 │   ├── planner.agent.md                # Strategy — perspectives, strategies, phased plan
 │   ├── plan-critic.agent.md            # Validation — scoring, accept/revise/re-explore
@@ -144,12 +143,12 @@ python scripts/render_dag.py plan.yaml -f mermaid  # Mermaid diagram
 
 | Mode | When | Stages |
 |------|------|--------|
-| **quick** | Single-file, low risk, obvious path | light explore → minimal plan → implement → smoke test → brief review |
+| **quick** | Single-file, low risk, obvious path | explore → plan → implement → review |
 | **standard** | Normal bug/feature, moderate complexity | explore → plan → implement → test → review |
 | **deep** | Multiple strategies, significant refactor, cross-cutting | explore → plan → critique → implement → test → review |
-| **high-risk** | Migration, auth/security, infra, wide blast radius | deep explore → plan → critique → rollback design → incremental implement → broad test → strict review |
+| **high-risk** | Migration, auth/security, infra, wide blast radius | explore → plan → critique → implement → test → review |
 
-The deliver skill auto-selects mode based on task analysis. When in doubt, it chooses the more cautious mode.
+Quick mode skips plan critique and testing. Standard mode skips plan critique. Deep and high-risk run all phases — they differ in the depth expected within each phase. The deliver skill auto-selects mode based on task analysis. When in doubt, it chooses the more cautious mode.
 
 ## Revise vs Replan
 
@@ -167,41 +166,41 @@ The deliver skill auto-selects mode based on task analysis. When in doubt, it ch
 
 1. **Deliver skill** classifies as `standard` mode (normal feature, moderate complexity)
 
-2. **Exploration phase** discovers:
+2. **Phase 1 — Exploration** (→ explorer agent) discovers:
    - 12 public endpoints in `src/routes/public/`
    - Existing middleware pattern in `src/middleware/`
    - Redis already in the stack (potential rate limit store)
    - No existing rate limiting anywhere
    - Risk: middleware ordering affects all endpoints
 
-3. **Planning phase** generates perspectives and strategy:
+3. **Phase 2 — Planning** (→ planner agent) produces:
    - Considers Redis-backed sliding window vs in-memory token bucket
    - Recommends Redis sliding window (aligns with existing infra)
    - Plans 3 phases: middleware → route integration → tests
 
-4. **Implementation phase** executes phase by phase:
+4. **Phase 4 — Implementation** (→ implementer agent) executes:
    - Phase 1: Creates rate limit middleware with Redis backend
    - Phase 2: Integrates with all 12 public routes
    - Phase 3: Adds configuration and documentation
 
-5. **Testing phase** validates:
+5. **Phase 5 — Testing** (→ tester agent) validates:
    - Runs existing test suite (all pass)
    - Adds rate limit tests: happy path, limit exceeded, Redis unavailable
    - Reports 88% confidence, one gap: no load testing
 
-6. **Review phase** assesses:
+6. **Phase 6 — Review** (→ reviewer agent) assesses:
    - Correctness: 8/10, Design: 9/10, Maintainability: 8/10
    - Decision: **approve-with-follow-ups**
    - Follow-up: "Add monitoring dashboard for rate limit metrics"
 
 ## Key Design Decisions
 
-1. **Deliver is the orchestrator**: The deliver skill manages the pipeline directly. No recursive agent spawning. Specialist agents are optional helpers, not required runtime managers.
+1. **Deliver is the orchestrator**: The deliver skill manages the pipeline directly, delegating each phase to a specialist agent. No recursive agent spawning. The orchestrator agent is not used by the pipeline.
 
-2. **Domain-agnostic**: Works for software delivery, migrations, research tasks, operational work — not just simple code changes.
+2. **Explicit phase delegation**: Each phase is delegated to a named specialist agent (explorer → planner → plan-critic → implementer → tester → reviewer). The deliver skill handles sequencing and feedback routing.
 
-3. **Adaptive planning**: The planner generates perspectives fresh per task. No hardcoded "security planner" or "performance planner" agents needed.
+3. **Domain-agnostic**: Works for software delivery, migrations, research tasks, operational work — not just simple code changes.
 
-4. **Inline by default**: Each phase works without delegation. Specialist agents add value when focused, isolated work is needed — but the pipeline never depends on them.
+4. **Adaptive planning**: The planner generates perspectives fresh per task. No hardcoded "security planner" or "performance planner" agents needed.
 
 5. **Explicit correction**: Revise and replan are separate paths with different destinations and cycle limits. This prevents infinite loops and ensures the right problem gets fixed.

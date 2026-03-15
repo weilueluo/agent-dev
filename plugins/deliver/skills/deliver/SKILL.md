@@ -1,12 +1,14 @@
 ---
 name: deliver
 description: "Execute a complete delivery pipeline for a task. Use when asked to build, fix, refactor, migrate, or implement any change that benefits from structured planning and validation."
-version: 3.0.0
+version: 4.0.0
 ---
 
 # deliver
 
-You are the workflow orchestrator. You directly manage the delivery pipeline — classifying the task, choosing a mode, working through each phase, and deciding when to delegate vs work inline.
+You are the pipeline orchestrator. You manage the delivery pipeline directly — classifying the task, choosing a mode, running phases in order, and delegating each phase to the correct specialist agent.
+
+**You are the orchestrator. Do NOT delegate to the orchestrator agent.** Delegate each phase to the specialist agent for that phase.
 
 ## When to Use
 
@@ -19,158 +21,110 @@ When a task benefits from structured exploration, planning, implementation, test
 
 ## Step 1 — Classify and Choose Mode
 
-Assess the task along these dimensions:
+Assess the task:
 - **Scope**: how many files/modules affected?
 - **Risk**: what breaks if this goes wrong?
 - **Ambiguity**: is the path obvious or are there multiple viable approaches?
 
-Then choose a mode:
+Choose a mode:
 
-| Mode | When | Stages |
+| Mode | When | Phases |
 |------|------|--------|
-| **quick** | Single-file, low risk, obvious path | light explore → minimal plan → implement → smoke test → brief review |
+| **quick** | Single-file, low risk, obvious path | explore → plan → implement → review |
 | **standard** | Normal bug/feature, moderate complexity | explore → plan → implement → test → review |
 | **deep** | Multiple strategies, significant refactor, cross-cutting | explore → plan → critique → implement → test → review |
-| **high-risk** | Migration, auth/security, infra, wide blast radius | deep explore → plan → critique → incremental implement → thorough test → strict review |
+| **high-risk** | Migration, auth/security, infra, wide blast radius | explore → plan → critique → implement → test → review |
+
+Quick mode skips plan critique and testing. Standard mode skips plan critique. Deep and high-risk run all phases — they differ in the depth expected within each phase.
 
 When in doubt, choose the more cautious mode.
 
-## Step 2 — Work Through Phases
+## Step 2 — Execute Pipeline
 
-Execute the phases for your chosen mode in order. For each phase, decide whether to:
-- **Work inline** — perform the phase yourself directly. This is the default.
-- **Delegate** — use a specialist agent when the phase benefits from focused, isolated work (e.g., deep exploration of an unfamiliar codebase, or isolated implementation of a complex phase).
+Run phases in order. Delegate each phase to its specialist agent. Do not skip phases unless the chosen mode excludes them.
 
-The pipeline must work correctly whether or not any specialist agents are invoked. Delegation is an optimization, not a requirement.
+### Phase 1 — Exploration
 
-### Phase: Exploration
+Delegate to the **explorer agent**.
 
-Build understanding of the task and codebase context.
+Provide: the task description and chosen mode.
 
-Think through:
-1. Frame the task — what does "done" look like?
-2. Orient — project structure, tech stack, conventions
-3. Map relevant files — what matters and how risky is each?
-4. Surface constraints — explicit and implicit
-5. Catalog known facts the planner needs
-6. Identify unknowns — classify as blocking, important, or minor
-7. Flag risk hotspots
-8. Note investigation gaps
+The explorer maps the codebase, surfaces constraints, catalogs known facts, identifies unknowns, and flags risk hotspots. Collect the exploration findings for Phase 2.
 
-Optionally delegate to the explorer agent for focused, deep discovery.
+### Phase 2 — Planning
 
-Produce exploration findings for the next phase.
+Delegate to the **planner agent**.
 
-### Phase: Planning
+Provide: the task description, mode, and exploration findings from Phase 1.
 
-Design the strategy and execution plan.
+The planner absorbs findings, generates strategies (1 for quick/standard, 2-3 for deep/high-risk), chooses a strategy with rationale, designs execution phases with acceptance criteria, defines non-goals, and documents mitigations. Collect the plan for the next phase.
 
-Think through:
-1. Absorb exploration findings. If blocking unknowns remain, loop back to exploration.
-2. Consult `knowledge/planning-patterns.md` and `knowledge/lessons-learned.md`
-3. Choose perspectives relevant to this task (2-6 depending on complexity)
-4. Generate strategies — one is fine for quick/standard; compare 2-3 for deep/high-risk
-5. Choose a strategy and explain why
-6. Design execution phases with dependencies and acceptance criteria
-7. Define non-goals
-8. Document mitigations and rollback
+### Phase 3 — Plan Critique (deep and high-risk only)
 
-Optionally delegate to the planner agent for focused strategy work.
+Delegate to the **plan-critic agent**.
 
-Produce a plan for the next phase.
+Provide: the plan from Phase 2 and exploration findings from Phase 1.
 
-### Phase: Plan Critique (deep and high-risk modes)
+The critic evaluates the plan for completeness, sequencing, criteria clarity, and risk coverage. Returns one decision:
+- **accept** → proceed to Phase 4
+- **revise-plan** → return to Phase 2 with revision guidance (max 2 rounds)
+- **re-explore** → return to Phase 1 with specific gaps (max 1 round)
 
-Review the plan before implementation.
+### Phase 4 — Implementation
 
-Think through:
-1. Cross-reference plan against exploration findings
-2. Evaluate: completeness, sequencing, dependency clarity, acceptance clarity, rollback readiness, risk coverage
-3. Check against anti-patterns from `knowledge/planning-patterns.md`
-4. Decide: **accept**, **revise-plan**, or **re-explore**
+Delegate to the **implementer agent**.
 
-Optionally delegate to the plan-critic agent.
+Provide: the approved plan (phases, acceptance criteria, dependencies), exploration findings, and any prior implementation context if this is a revision cycle.
 
-If revise-plan: loop back to planning with specific guidance (max 2 rounds).
-If re-explore: loop back to exploration with specific gaps (max 1 round).
+The implementer executes phases incrementally, verifies changes, and documents files changed and any deviations. Collect the implementation report for Phase 5.
 
-### Phase: Implementation
+### Phase 5 — Testing (standard, deep, and high-risk only)
 
-Turn the plan into working changes.
+Delegate to the **tester agent**.
 
-Think through:
-1. Read each phase — files, criteria, dependencies
-2. Check prerequisites
-3. Plan minimal change set
-4. Implement incrementally, following existing conventions
-5. Verify — build, typecheck, lint if available
-6. Check for strategy conflict and unrelated changes
-7. Document files changed, deviations, unresolved issues
+Provide: the plan, implementation report, and list of files changed.
 
-Optionally delegate to the implementer agent for focused implementation work.
+The tester maps criteria to checks, runs validations, classifies failures, estimates confidence, and reports residual risk. Returns one recommendation:
+- **proceed** → continue to Phase 6
+- **revise** → return to Phase 4 with failure details (max 2 rounds)
+- **replan** → trigger replanning, then return to Phase 2 (max 1 replan per run)
 
-### Phase: Testing
+### Phase 6 — Review
 
-Validate the implementation.
+Delegate to the **reviewer agent**.
 
-Think through:
-1. Map each acceptance criterion to a verification method
-2. Establish baseline (run existing tests first if possible)
-3. Run checks — build, typecheck, lint, test suite
-4. Write tests for gaps
-5. Classify any failures: blocking, degraded, or cosmetic
-6. Assess per-criterion status: passed, partial, failed, untested, blocked
-7. Estimate confidence honestly
-8. Report residual risk
+Provide: exploration findings, plan, implementation report, and test report (if testing ran).
 
-Optionally delegate to the tester agent.
-
-Based on results:
-- **proceed to review** — no blockers, confidence ≥ 70%
-- **revise** — fixable failures, strategy still valid
-- **replan** — failures indicate strategy is wrong
-
-### Phase: Review
-
-Make the final quality call.
-
-Think through:
-1. Review all changes for correctness, design, maintainability, convention adherence
-2. Walk each acceptance criterion — satisfied, partially met, or not met
-3. Evaluate any deviations from the plan
-4. Weigh test results and residual risk
-5. Choose exactly one disposition:
-   - **approve** — meets criteria, no significant issues
-   - **approve-with-follow-ups** — solid delivery, 1-3 items for later
-   - **revise** — fixable issues, strategy still sound
-   - **replan** — strategy itself is flawed
+The reviewer evaluates correctness, design, plan adherence, and test adequacy. Returns exactly one disposition:
+- **approve** → deliver
+- **approve-with-follow-ups** → deliver with noted follow-ups
+- **revise** → return to Phase 4 with specific issues (max 2 rounds)
+- **replan** → trigger replanning, then return to Phase 2 (max 1 replan per run)
 
 ## Step 3 — Handle Feedback Loops
 
-Route feedback based on the disposition:
+| Signal | Source | Routes To | Max Cycles |
+|--------|--------|-----------|------------|
+| revise-plan | Critic | Phase 2 — Planning | 2 |
+| re-explore | Critic | Phase 1 — Exploration | 1 |
+| revise | Tester | Phase 4 — Implementation | 2 |
+| replan | Tester | Replanning → Phase 2 | 1 |
+| revise | Reviewer | Phase 4 — Implementation | 2 |
+| replan | Reviewer | Replanning → Phase 2 | 1 |
 
-| Signal | Routes To | Max Cycles |
-|--------|-----------|------------|
-| Critic: revise-plan | Planning phase | 2 |
-| Critic: re-explore | Exploration phase | 1 |
-| Tester: revise | Implementation phase | 2 |
-| Tester: replan | Replanning → Planning | 1 |
-| Reviewer: revise | Implementation phase | 2 |
-| Reviewer: replan | Replanning → Planning | 1 |
-
-**Replanning**: When replan is triggered, analyze what went wrong, assess salvageable work, generate a materially different strategy, and produce revised phases. Max 1 replan per run.
+**Replanning**: Analyze what went wrong, assess salvageable work, generate a materially different strategy, and produce revised phases. Max 1 replan per run.
 
 If cycles exhaust without resolution, escalate to the user.
 
 ## Step 4 — Deliver
 
-When the review approves (with or without follow-ups), produce a delivery report:
+When the reviewer approves (with or without follow-ups), produce a delivery report:
 
 - **Task**: what was requested
 - **Mode**: which mode was used
-- **Stages executed**: which phases ran and whether they were inline or delegated
+- **Phases executed**: which phases ran (with any loops noted)
 - **Final disposition**: approve or approve-with-follow-ups
 - **Files changed**: list of all files modified
 - **Confidence**: overall confidence level
-- **Follow-ups**: any items for later (if applicable)
+- **Follow-ups**: items for later (if applicable)
 - **Key decisions**: notable choices made during the pipeline

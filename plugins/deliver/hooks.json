@@ -6,7 +6,7 @@
       "steps": [
         {
           "type": "context",
-          "message": "The deliver plugin is active. Operating rules are in CLAUDE.md. The deliver skill is the primary orchestrator — it manages the pipeline directly and delegates to specialist agents when useful. Available agents (optional helpers): orchestrator, explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) Revise = implementation issue, strategy valid. Replan = strategy flawed. (2) Planner dynamically chooses perspectives per task. (3) Specialist agents are optional — the pipeline works inline by default."
+          "message": "The deliver plugin is active. Operating rules are in CLAUDE.md. The deliver skill is the pipeline orchestrator — it delegates each phase to a specialist agent directly. Available specialist agents: explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) The deliver skill orchestrates the pipeline — do NOT delegate to the orchestrator agent. (2) Revise = implementation issue, strategy valid. Replan = strategy flawed. (3) Planner dynamically chooses perspectives per task."
         }
       ]
     },
