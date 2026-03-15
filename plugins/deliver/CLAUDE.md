@@ -7,7 +7,7 @@ Persistent rules for every pipeline execution.
 ## Core Principles
 
 - **Deliver is the orchestrator.** The deliver skill manages the pipeline directly — classifying tasks, choosing modes, running phases in order, and delegating each phase to the corresponding specialist agent. Do NOT delegate to the orchestrator agent.
-- **Delegate each phase to its specialist agent.** Phase 1 → explorer, Phase 2 → planner, Phase 3 → plan-critic, Phase 4 → implementer, Phase 5 → tester, Phase 6 → reviewer. Each agent handles its phase; the deliver skill handles sequencing and feedback routing.
+- **Delegate each phase to its specialist agent.** Phase 1 → explorer, Phase 2 → 2–4 planners (parallel, different perspectives and models), Phase 3 → 2–4 plan-critics (parallel, different perspectives and models), Phase 4 → implementer, Phase 5 → tester, Phase 6 → 2–4 reviewers (parallel, different perspectives and models). For Phases 2, 3, and 6, the orchestrator synthesizes parallel outputs into a single handoff artifact before proceeding. Phases 1, 4, and 5 remain single-agent.
 - **Revise ≠ Replan.** Revise = strategy is sound, fix the implementation. Replan = strategy is flawed, go back to planning. When in doubt: "Is the plan wrong, or was the execution wrong?"
 - **Domain-agnostic.** Works for software, migrations, refactors, infrastructure, research, and other complex work.
 
