@@ -22,14 +22,14 @@
       "category": "development"
     },
     {
-      "name": "agent-pipeline",
+      "name": "deliver",
       "description": "Orchestrator-led delivery pipeline: Explorer → Planner → Plan Critic → Implementer → Tester → Reviewer → Replanner",
       "version": "1.0.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
       },
-      "source": "./plugins/agent-pipeline",
+      "source": "./plugins/deliver",
       "category": "development",
       "keywords": ["pipeline", "planning", "review", "testing", "delivery"]
     }

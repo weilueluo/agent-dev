@@ -42,7 +42,7 @@ The deliver skill is the workflow orchestrator. It manages the pipeline directly
 ## File Structure
 
 ```
-agent-pipeline/
+deliver/
 ├── plugin.json                          # Plugin manifest
 ├── README.md                            # This file
 ├── CLAUDE.md                            # Persistent operating rules
@@ -78,12 +78,12 @@ agent-pipeline/
 
 ### From local path
 ```bash
-copilot plugin install ./plugins/agent-pipeline
+copilot plugin install ./plugins/deliver
 ```
 
 ### From GitHub
 ```bash
-copilot plugin install OWNER/REPO:plugins/agent-pipeline
+copilot plugin install OWNER/REPO:plugins/deliver
 ```
 
 ### Verify

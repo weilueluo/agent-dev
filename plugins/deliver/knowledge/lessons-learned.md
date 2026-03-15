@@ -1,6 +1,6 @@
 # Lessons Learned
 
-Persistent memory for the agent-pipeline. Record patterns discovered during pipeline executions so the planner and critic can learn from past runs.
+Persistent memory for the deliver pipeline. Record patterns discovered during pipeline executions so the planner and critic can learn from past runs.
 
 The planner should consult this file when selecting strategies. The critic should check plans against known failure patterns here.
 

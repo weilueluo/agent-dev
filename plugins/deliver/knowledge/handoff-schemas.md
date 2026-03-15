@@ -1,6 +1,6 @@
 # Handoff Schemas
 
-Every stage in the agent-pipeline MUST emit its handoff artifact using these exact schemas. Downstream stages MUST validate that they received a conforming artifact before proceeding. All handoffs are YAML blocks emitted in code fences.
+Every stage in the deliver pipeline MUST emit its handoff artifact using these exact schemas. Downstream stages MUST validate that they received a conforming artifact before proceeding. All handoffs are YAML blocks emitted in code fences.
 
 ---
 

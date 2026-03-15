@@ -1,5 +1,5 @@
 {
-  "name": "agent-pipeline",
+  "name": "deliver",
   "description": "Production multi-stage delivery pipeline. The deliver skill orchestrates exploration, planning, critique, implementation, testing, and review — with optional delegation to specialist agents, quality gates, and explicit correction paths.",
   "version": "3.0.0",
   "author": {

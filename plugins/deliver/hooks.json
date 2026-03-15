@@ -2,11 +2,11 @@
   "hooks": [
     {
       "event": "SessionStart",
-      "description": "Inject agent-pipeline operating rules and available capabilities at session start",
+      "description": "Inject deliver operating rules and available capabilities at session start",
       "steps": [
         {
           "type": "context",
-          "message": "The agent-pipeline plugin is active. Operating rules are in CLAUDE.md. The deliver skill is the primary orchestrator — it manages the pipeline directly and delegates to specialist agents when useful. Available agents (optional helpers): orchestrator, explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) Revise = implementation issue, strategy valid. Replan = strategy flawed. (2) Planner dynamically chooses perspectives per task. (3) Specialist agents are optional — the pipeline works inline by default."
+          "message": "The deliver plugin is active. Operating rules are in CLAUDE.md. The deliver skill is the primary orchestrator — it manages the pipeline directly and delegates to specialist agents when useful. Available agents (optional helpers): orchestrator, explorer, planner, plan-critic, implementer, tester, reviewer. Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, review-task, replan-task, build-execution-graph. Key rules: (1) Revise = implementation issue, strategy valid. Replan = strategy flawed. (2) Planner dynamically chooses perspectives per task. (3) Specialist agents are optional — the pipeline works inline by default."
         }
       ]
     },
@@ -42,7 +42,7 @@
             "**/migrations/versions/**"
           ],
           "action": "warn",
-          "message": "Protected path detected. This file is guarded by agent-pipeline rules (lock files, secrets, generated files, vendored code). Modification requires explicit plan acknowledgment."
+          "message": "Protected path detected. This file is guarded by deliver rules (lock files, secrets, generated files, vendored code). Modification requires explicit plan acknowledgment."
         }
       ]
     }
