@@ -41,19 +41,19 @@ When in doubt, choose the more cautious mode.
 
 ## Multi-Agent Parallel Dispatch
 
-Phases 2 (Planning), 3 (Plan Critique), and 6 (Review) use **multi-agent parallel dispatch** to increase analytical coverage and reduce blind-spot risk. The orchestrator chooses how many agents to dispatch (1–4) for each phase. When only 1 agent is dispatched, standard single-agent behavior applies and no synthesis step is needed.
+Phases 2 (Planning), 3 (Plan Critique), and 6 (Review) use **multi-agent parallel dispatch** to increase analytical coverage and reduce blind-spot risk. The number of agents is determined by the Model Selection Strategy (see below) — one agent per selected model, capped at 4. When only 1 model qualifies, standard single-agent behavior applies and no synthesis step is needed.
 
 ### Dispatch Pattern
 
 For each of these three phases, the orchestrator:
 
-1. **Generates 1–4 perspective prompts** tailored to the current task. Perspectives are complementary lenses for the agent's analysis — choose them dynamically based on the task domain, risk profile, and complexity. Never use a fixed list. Examples:
+1. **Generates perspective prompts** — one per model in the model pool (see Model Selection Strategy below). Perspectives are complementary lenses for the agent's analysis — choose them dynamically based on the task domain, risk profile, and complexity. Never use a fixed list. Examples:
 
    - **Planning**: "minimum-risk, maximum-rollback-safety focus", "delivery-speed, minimum-change focus", "long-term maintainability and design quality focus"
    - **Critique**: "completeness and gap analysis focus", "feasibility and implementation risk focus", "criteria clarity and testability focus"
    - **Review**: "correctness and edge-case focus", "design quality and maintainability focus", "plan adherence and scope discipline focus"
 
-2. **Dispatches 1–4 instances of the same agent type in parallel** (e.g., 1–4 planner agents, not different agent types). Each agent receives the standard phase inputs plus its unique perspective prompt. Use the task tool's `model` parameter to assign different AI models across agents where available — if a model is unavailable, the agent falls back to the default model. Each agent receives the full input context, not a summary.
+2. **Dispatches parallel agents** — one per model in the model pool (see Model Selection Strategy above). Each agent receives the standard phase inputs plus its unique perspective prompt. Assign each agent a different model from the pool via the task tool's `model` parameter. If a model is unavailable at dispatch time, skip it rather than falling back to the default. Each agent receives the full input context, not a summary.
 
 3. **Collects all outputs** after parallel dispatch completes.
 
@@ -62,6 +62,22 @@ For each of these three phases, the orchestrator:
 ### Complementarity with Internal Perspectives
 
 The planner agent generates its own 2–6 internal analytical perspectives as part of its planning process. The external perspective prompt provides a *lens* or *orientation* for the agent's entire session, while the internal perspectives are analytical angles *within* that lens. These two mechanisms are complementary — each parallel planner operates under its assigned external lens and generates its own internal perspectives within that lens.
+
+### Model Selection Strategy
+
+When dispatching parallel agents, the orchestrator **must** select models dynamically from the environment's available model list (documented in the task tool's `model` parameter). Do not hardcode model IDs — the selection must adapt as models are added, removed, or re-tiered.
+
+**Algorithm:**
+
+1. **Read** the available models from the task tool's `model` parameter documentation. Each model has an ID, display name, and tier label (e.g., premium, standard, fast/cheap).
+2. **Exclude** all models labeled fast/cheap. These are unsuitable for the analytical depth required by parallel dispatch phases.
+3. **Group** the remaining models by top-level provider — the provider is the first token of the model ID (e.g., `claude`, `gpt`, `gemini`). Models from the same provider but different sub-families (e.g., `claude-opus` vs `claude-sonnet`) belong to the same provider group.
+4. **Select one model per provider** — within each provider group, pick the model with the highest tier (premium > standard). If multiple models share the highest tier, pick the one with the latest version number or the largest context window.
+5. The resulting set of per-provider best models is the **model pool** for parallel dispatch.
+
+**Dispatch count:** The number of parallel agents for a phase equals the number of models in the pool (capped at 4). Each agent receives a unique model from the pool. This ensures every parallel agent runs on a different provider, maximizing reasoning diversity.
+
+**Fallback:** If only 1 model qualifies (e.g., only one provider is available), dispatch a single agent — no synthesis step is needed.
 
 ### Fresh Perspectives on Re-Runs
 
@@ -81,7 +97,7 @@ The explorer maps the codebase, surfaces constraints, catalogs known facts, iden
 
 ### Phase 2 — Planning
 
-Generate 1–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 1–4 **planner agents in parallel**, each receiving: the task description, mode, exploration findings from Phase 1, and its unique perspective prompt. Vary models via the `model` parameter.
+Generate perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to **planner agents in parallel** (one per model in the pool), each receiving: the task description, mode, exploration findings from Phase 1, and its unique perspective prompt. Assign models per the Model Selection Strategy.
 
 Each planner absorbs findings, generates strategies (1 for quick/standard, 2-3 for deep/high-risk), chooses a strategy with rationale, designs execution phases with acceptance criteria, defines non-goals, and documents mitigations. Each planner's internal perspective mechanism (2–6 analytical perspectives) operates within its assigned external lens.
 
@@ -97,7 +113,7 @@ Each planner absorbs findings, generates strategies (1 for quick/standard, 2-3 f
 
 ### Phase 3 — Plan Critique (deep and high-risk only)
 
-Generate 1–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 1–4 **plan-critic agents in parallel**, each receiving: the plan from Phase 2, exploration findings from Phase 1, and its unique perspective prompt. Vary models via the `model` parameter.
+Generate perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to **plan-critic agents in parallel** (one per model in the pool), each receiving: the plan from Phase 2, exploration findings from Phase 1, and its unique perspective prompt. Assign models per the Model Selection Strategy.
 
 Each critic evaluates the plan for completeness, sequencing, criteria clarity, and risk coverage from its assigned perspective.
 
@@ -141,7 +157,7 @@ The tester maps criteria to checks, runs validations, classifies failures, estim
 
 ### Phase 6 — Review
 
-Generate 1–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 1–4 **reviewer agents in parallel**, each receiving: exploration findings, plan, implementation report, test report (if testing ran), and its unique perspective prompt. Vary models via the `model` parameter.
+Generate perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to **reviewer agents in parallel** (one per model in the pool), each receiving: exploration findings, plan, implementation report, test report (if testing ran), and its unique perspective prompt. Assign models per the Model Selection Strategy.
 
 Each reviewer evaluates correctness, design, plan adherence, and test adequacy from its assigned perspective.
 
@@ -179,7 +195,7 @@ Route the synthesized disposition:
 
 **Replanning**: Analyze what went wrong, assess salvageable work, generate a materially different strategy, and produce revised phases. Max 1 replan per run.
 
-**Re-runs of parallelized phases**: When a feedback loop re-triggers Phase 2 (planning), Phase 3 (critique), or Phase 6 (review), dispatch 1–4 agents per the Multi-Agent Parallel Dispatch protocol with **fresh** perspective prompts — do not reuse perspective prompts from the previous round.
+**Re-runs of parallelized phases**: When a feedback loop re-triggers Phase 2 (planning), Phase 3 (critique), or Phase 6 (review), dispatch agents per the Multi-Agent Parallel Dispatch protocol (re-apply Model Selection Strategy for models, generate **fresh** perspective prompts) — do not reuse perspective prompts from the previous round.
 
 If cycles exhaust without resolution, escalate to the user.
 
