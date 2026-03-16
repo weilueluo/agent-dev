@@ -7,7 +7,7 @@ A personal collection of Copilot CLI plugins by **weilueluo**.
 ### Add this marketplace
 
 ```
-/plugin marketplace add weilueluo/my-claude-plugins
+/plugin marketplace add weilueluo/my-plugins
 ```
 
 ### Browse available plugins
