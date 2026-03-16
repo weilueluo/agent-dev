@@ -41,19 +41,19 @@ When in doubt, choose the more cautious mode.
 
 ## Multi-Agent Parallel Dispatch
 
-Phases 2 (Planning), 3 (Plan Critique), and 6 (Review) use **multi-agent parallel dispatch** to increase analytical coverage and reduce blind-spot risk. This applies to **all pipeline modes** (quick, standard, deep, high-risk) — the cost tradeoff is accepted by design.
+Phases 2 (Planning), 3 (Plan Critique), and 6 (Review) use **multi-agent parallel dispatch** to increase analytical coverage and reduce blind-spot risk. The orchestrator chooses how many agents to dispatch (1–4) for each phase. When only 1 agent is dispatched, standard single-agent behavior applies and no synthesis step is needed.
 
 ### Dispatch Pattern
 
 For each of these three phases, the orchestrator:
 
-1. **Generates 2–4 perspective prompts** tailored to the current task. Perspectives are complementary lenses for the agent's analysis — choose them dynamically based on the task domain, risk profile, and complexity. Never use a fixed list. Examples:
+1. **Generates 1–4 perspective prompts** tailored to the current task. Perspectives are complementary lenses for the agent's analysis — choose them dynamically based on the task domain, risk profile, and complexity. Never use a fixed list. Examples:
 
    - **Planning**: "minimum-risk, maximum-rollback-safety focus", "delivery-speed, minimum-change focus", "long-term maintainability and design quality focus"
    - **Critique**: "completeness and gap analysis focus", "feasibility and implementation risk focus", "criteria clarity and testability focus"
    - **Review**: "correctness and edge-case focus", "design quality and maintainability focus", "plan adherence and scope discipline focus"
 
-2. **Dispatches 2–4 instances of the same agent type in parallel** (e.g., 2–4 planner agents, not different agent types). Each agent receives the standard phase inputs plus its unique perspective prompt. Use the task tool's `model` parameter to assign different AI models across agents where available — if a model is unavailable, the agent falls back to the default model. Each agent receives the full input context, not a summary.
+2. **Dispatches 1–4 instances of the same agent type in parallel** (e.g., 1–4 planner agents, not different agent types). Each agent receives the standard phase inputs plus its unique perspective prompt. Use the task tool's `model` parameter to assign different AI models across agents where available — if a model is unavailable, the agent falls back to the default model. Each agent receives the full input context, not a summary.
 
 3. **Collects all outputs** after parallel dispatch completes.
 
@@ -81,7 +81,7 @@ The explorer maps the codebase, surfaces constraints, catalogs known facts, iden
 
 ### Phase 2 — Planning
 
-Generate 2–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 2–4 **planner agents in parallel**, each receiving: the task description, mode, exploration findings from Phase 1, and its unique perspective prompt. Vary models via the `model` parameter.
+Generate 1–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 1–4 **planner agents in parallel**, each receiving: the task description, mode, exploration findings from Phase 1, and its unique perspective prompt. Vary models via the `model` parameter.
 
 Each planner absorbs findings, generates strategies (1 for quick/standard, 2-3 for deep/high-risk), chooses a strategy with rationale, designs execution phases with acceptance criteria, defines non-goals, and documents mitigations. Each planner's internal perspective mechanism (2–6 analytical perspectives) operates within its assigned external lens.
 
@@ -97,7 +97,7 @@ Each planner absorbs findings, generates strategies (1 for quick/standard, 2-3 f
 
 ### Phase 3 — Plan Critique (deep and high-risk only)
 
-Generate 2–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 2–4 **plan-critic agents in parallel**, each receiving: the plan from Phase 2, exploration findings from Phase 1, and its unique perspective prompt. Vary models via the `model` parameter.
+Generate 1–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 1–4 **plan-critic agents in parallel**, each receiving: the plan from Phase 2, exploration findings from Phase 1, and its unique perspective prompt. Vary models via the `model` parameter.
 
 Each critic evaluates the plan for completeness, sequencing, criteria clarity, and risk coverage from its assigned perspective.
 
@@ -141,7 +141,7 @@ The tester maps criteria to checks, runs validations, classifies failures, estim
 
 ### Phase 6 — Review
 
-Generate 2–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 2–4 **reviewer agents in parallel**, each receiving: exploration findings, plan, implementation report, test report (if testing ran), and its unique perspective prompt. Vary models via the `model` parameter.
+Generate 1–4 perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to 1–4 **reviewer agents in parallel**, each receiving: exploration findings, plan, implementation report, test report (if testing ran), and its unique perspective prompt. Vary models via the `model` parameter.
 
 Each reviewer evaluates correctness, design, plan adherence, and test adequacy from its assigned perspective.
 
@@ -179,7 +179,7 @@ Route the synthesized disposition:
 
 **Replanning**: Analyze what went wrong, assess salvageable work, generate a materially different strategy, and produce revised phases. Max 1 replan per run.
 
-**Re-runs of parallelized phases**: When a feedback loop re-triggers Phase 2 (planning), Phase 3 (critique), or Phase 6 (review), dispatch 2–4 agents per the Multi-Agent Parallel Dispatch protocol with **fresh** perspective prompts — do not reuse perspective prompts from the previous round.
+**Re-runs of parallelized phases**: When a feedback loop re-triggers Phase 2 (planning), Phase 3 (critique), or Phase 6 (review), dispatch 1–4 agents per the Multi-Agent Parallel Dispatch protocol with **fresh** perspective prompts — do not reuse perspective prompts from the previous round.
 
 If cycles exhaust without resolution, escalate to the user.
 
