@@ -1,5 +1,5 @@
 ---
-name: codepen-downloader
+name: codepen
 description: "Download CodePen projects (HTML, CSS, JS) and assets to local files. Use when a user provides a CodePen URL and wants to save, download, or replicate a pen's source code locally. Triggers on CodePen URLs (codepen.io), 'download codepen', 'save codepen', 'get codepen code', or any request to extract code from a CodePen link."
 license: Complete terms in LICENSE.txt
 ---

@@ -20,7 +20,7 @@ Persistent rules for development tasks.
 - Implement real working code with exceptional attention to aesthetic details
 - Match implementation complexity to the aesthetic vision
 
-### codepen-downloader
+### codepen
 - CodePen has Cloudflare protection — always use Playwright (real browser), never raw HTTP requests
 - Extract pen data via multiple strategies: `window.__pen`, `__NEXT_DATA__`, CodeMirror instances, textarea fallbacks
 - Save as a standalone project: `index.html` + `style.css` + `script.js` + `assets/`
