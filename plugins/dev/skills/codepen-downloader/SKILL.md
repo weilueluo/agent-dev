@@ -27,168 +27,33 @@ Always normalize to the editor URL: `https://codepen.io/{user}/pen/{id}`
 
 CodePen uses Cloudflare protection — simple HTTP requests (curl, web_fetch, Invoke-WebRequest) will be blocked with a challenge page. **You must use a real browser via Playwright.**
 
-### Step 1: Install Playwright (if needed)
+### Step 1: Ensure Playwright is available
+
+The extraction script requires `playwright` with Chromium. Install if needed:
 
 ```bash
 npm ls playwright 2>/dev/null || npm install playwright
-npx playwright install chromium --with-deps 2>/dev/null || npx playwright install chromium
+npx playwright install chromium
 ```
 
-### Step 2: Write and run the extraction script
+If Playwright is already installed globally or in the project, skip this step.
 
-Create a temporary Node.js script that:
+### Step 2: Run the bundled extraction script
 
-1. Launches a headless Chromium browser via Playwright
-2. Navigates to the CodePen editor URL
-3. Waits for the page to fully load (past Cloudflare challenge)
-4. Extracts pen data from the page
+This skill ships with `extract.js` — a ready-to-run Playwright script located alongside this SKILL.md.
 
-Use this template script (adapt paths as needed):
-
-```js
-const { chromium } = require('playwright');
-
-(async () => {
-  const url = process.argv[2]; // CodePen URL from command line
-  if (!url) { console.error('Usage: node extract.js <codepen-url>'); process.exit(1); }
-
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-  });
-  const page = await context.newPage();
-
-  try {
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
-
-    // Wait for CodePen editor to render (try multiple selectors)
-    await page.waitForFunction(() => {
-      return document.querySelector('.CodeMirror') ||
-             document.querySelector('[class*="editor"]') ||
-             document.querySelector('#__NEXT_DATA__') ||
-             window.__pen;
-    }, { timeout: 30000 }).catch(() => {});
-
-    // Extract pen data using multiple strategies
-    const penData = await page.evaluate(() => {
-      const result = { html: '', css: '', js: '', title: '', externalCSS: [], externalJS: [], cssPreprocessor: '', jsPreprocessor: '' };
-
-      // Strategy 1: window.__pen global (older CodePen)
-      if (window.__pen) {
-        result.html = window.__pen.html || '';
-        result.css = window.__pen.css || '';
-        result.js = window.__pen.js || '';
-        result.title = window.__pen.title || '';
-        result.externalCSS = (window.__pen.css_external || '').split(';').filter(Boolean);
-        result.externalJS = (window.__pen.js_external || '').split(';').filter(Boolean);
-        result.cssPreprocessor = window.__pen.css_pre_processor || '';
-        result.jsPreprocessor = window.__pen.js_pre_processor || '';
-        return result;
-      }
-
-      // Strategy 2: __NEXT_DATA__ (newer CodePen with Next.js)
-      const nextDataEl = document.querySelector('#__NEXT_DATA__');
-      if (nextDataEl) {
-        try {
-          const data = JSON.parse(nextDataEl.textContent);
-          const pen = data?.props?.pageProps?.pen || data?.props?.pageProps?.data?.pen || {};
-          result.html = pen.html || '';
-          result.css = pen.css || '';
-          result.js = pen.js || '';
-          result.title = pen.title || '';
-          result.externalCSS = (pen.css_external || '').split(';').filter(Boolean);
-          result.externalJS = (pen.js_external || '').split(';').filter(Boolean);
-          result.cssPreprocessor = pen.css_pre_processor || '';
-          result.jsPreprocessor = pen.js_pre_processor || '';
-          return result;
-        } catch (e) {}
-      }
-
-      // Strategy 3: Look for pen data in any script tag
-      const scripts = document.querySelectorAll('script:not([src])');
-      for (const script of scripts) {
-        const text = script.textContent;
-        // Look for JSON-like pen data patterns
-        const patterns = [/__pen\s*=\s*(\{[\s\S]*?\});/, /"html"\s*:\s*"/, /penData\s*=\s*(\{[\s\S]*?\});/];
-        for (const pattern of patterns) {
-          const match = text.match(pattern);
-          if (match) {
-            try {
-              const obj = match[1] ? JSON.parse(match[1]) : null;
-              if (obj && (obj.html !== undefined || obj.css !== undefined)) {
-                result.html = obj.html || '';
-                result.css = obj.css || '';
-                result.js = obj.js || '';
-                result.title = obj.title || '';
-                result.externalCSS = (obj.css_external || '').split(';').filter(Boolean);
-                result.externalJS = (obj.js_external || '').split(';').filter(Boolean);
-                result.cssPreprocessor = obj.css_pre_processor || '';
-                result.jsPreprocessor = obj.js_pre_processor || '';
-                return result;
-              }
-            } catch (e) {}
-          }
-        }
-      }
-
-      // Strategy 4: Extract from CodeMirror editor instances
-      const editors = document.querySelectorAll('.CodeMirror');
-      if (editors.length >= 1) result.html = editors[0]?.CodeMirror?.getValue?.() || '';
-      if (editors.length >= 2) result.css = editors[1]?.CodeMirror?.getValue?.() || '';
-      if (editors.length >= 3) result.js = editors[2]?.CodeMirror?.getValue?.() || '';
-
-      // Strategy 5: Extract from textarea fallbacks
-      if (!result.html && !result.css && !result.js) {
-        const textareas = document.querySelectorAll('textarea');
-        for (const ta of textareas) {
-          const id = (ta.id || ta.name || '').toLowerCase();
-          if (id.includes('html')) result.html = ta.value;
-          else if (id.includes('css')) result.css = ta.value;
-          else if (id.includes('js')) result.js = ta.value;
-        }
-      }
-
-      // Get the title
-      if (!result.title) {
-        result.title = document.querySelector('.pen-title-link')?.textContent?.trim() ||
-                       document.querySelector('[class*="title"]')?.textContent?.trim() ||
-                       document.title.replace(/ - CodePen$/, '').trim() ||
-                       'codepen';
-      }
-
-      return result;
-    });
-
-    // Also capture any images from the pen's preview iframe
-    let images = [];
-    try {
-      const previewFrame = page.frames().find(f => f.url().includes('cdpn.io') || f.url().includes('codepen'));
-      if (previewFrame) {
-        images = await previewFrame.evaluate(() => {
-          return Array.from(document.querySelectorAll('img')).map(img => img.src).filter(Boolean);
-        });
-      }
-    } catch (e) {}
-
-    // Output as JSON
-    console.log(JSON.stringify({ ...penData, images }, null, 2));
-  } catch (err) {
-    console.error('Extraction failed:', err.message);
-
-    // Fallback: dump full page HTML for manual inspection
-    const html = await page.content();
-    console.log(JSON.stringify({ error: err.message, pageHtml: html.substring(0, 5000) }));
-  } finally {
-    await browser.close();
-  }
-})();
-```
-
-### Step 3: Run the script
+Find its absolute path relative to this skill's directory, then run it:
 
 ```bash
-node extract.js "https://codepen.io/{user}/pen/{id}"
+node /path/to/plugins/dev/skills/codepen-downloader/extract.js "https://codepen.io/{user}/pen/{id}"
 ```
+
+The script outputs JSON to stdout (logs go to stderr). It tries 5 extraction strategies in order:
+1. `window.__pen` global (older CodePen)
+2. `__NEXT_DATA__` JSON (newer Next.js CodePen)
+3. Script tag scanning for pen data
+4. CodeMirror editor instances
+5. Textarea fallbacks
 
 Parse the JSON output to get `html`, `css`, `js`, `title`, `externalCSS`, `externalJS`, and `images`.
 
