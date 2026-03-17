@@ -1,0 +1,14 @@
+{
+  "name": "chats",
+  "description": "Chat platform integrations. Skills for interacting with messaging platforms like WhatsApp — search conversations, send messages, manage contacts and groups, all from the CLI.",
+  "version": "1.0.0",
+  "author": {
+    "name": "weilueluo",
+    "email": "luoweilue@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["chat", "messaging", "whatsapp", "contacts", "groups", "send", "search"],
+  "category": "communication",
+  "skills": "skills/",
+  "hooks": "hooks.json"
+}

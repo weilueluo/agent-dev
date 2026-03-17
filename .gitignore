@@ -6,3 +6,8 @@ Thumbs.db
 *.log
 .env
 .env.*
+
+# Go build artifacts
+*.exe
+*.exe~
+tools/wachat/wachat
