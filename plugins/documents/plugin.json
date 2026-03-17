@@ -1,0 +1,14 @@
+{
+  "name": "documents",
+  "description": "Document processing skills for creating, editing, and manipulating various document formats including Word (.docx), PDF, PowerPoint (.pptx), Excel (.xlsx), and collaborative document co-authoring workflows.",
+  "version": "1.0.0",
+  "author": {
+    "name": "weilueluo",
+    "email": "luoweilue@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["documents", "docx", "pdf", "pptx", "xlsx", "office", "word", "excel", "powerpoint"],
+  "category": "documents",
+  "skills": "skills/",
+  "hooks": "hooks.json"
+}

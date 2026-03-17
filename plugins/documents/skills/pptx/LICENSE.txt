@@ -1,0 +1,12 @@
+© 2025 Anthropic, PBC. All rights reserved.
+
+LICENSE: Use of these materials (including all code, prompts, assets, files,
+and other components of this Skill) is governed by your agreement with
+Anthropic regarding use of Anthropic's services. If no separate agreement
+exists, use is governed by Anthropic's Consumer Terms of Service or
+Commercial Terms of Service, as applicable:
+https://www.anthropic.com/legal/consumer-terms
+https://www.anthropic.com/legal/commercial-terms
+
+Anthropic retains all right, title, and interest in these materials,
+including all copyrights, patents, and other intellectual property rights.
