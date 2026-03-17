@@ -1,0 +1,14 @@
+{
+  "name": "dev",
+  "description": "Development skills for building production-grade frontend interfaces and downloading CodePen projects.",
+  "version": "1.0.0",
+  "author": {
+    "name": "weilueluo",
+    "email": "luoweilue@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["dev", "frontend", "design", "ui", "web", "codepen", "download"],
+  "category": "dev",
+  "skills": "skills/",
+  "hooks": "hooks.json"
+}
