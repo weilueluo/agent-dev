@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Eval Set Review - __SKILL_NAME_PLACEHOLDER__</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #faf9f5; }
+    h1 { font-size: 1.5rem; }
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; }
+    .btn-add { background: #6a9bcc; color: white; }
+    .btn-export { background: #d97757; color: white; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th { background: #141413; color: white; padding: 0.75rem; text-align: left; }
+    td { padding: 0.75rem; border-bottom: 1px solid #e8e6dc; }
+    .query-input { width: 100%; padding: 0.4rem; border: 1px solid #e8e6dc; resize: vertical; min-height: 60px; }
+    .toggle input { display: none; }
+    .btn-delete { background: #c44; color: white; padding: 0.3rem 0.6rem; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Eval Set Review: <span id="skill-name">__SKILL_NAME_PLACEHOLDER__</span></h1>
+  <p>Description: <span id="skill-desc">__SKILL_DESCRIPTION_PLACEHOLDER__</span></p>
+  <div><button class="btn btn-add" onclick="addRow()">+ Add Query</button> <button class="btn btn-export" onclick="exportEvalSet()">Export Eval Set</button></div>
+  <table><thead><tr><th>Query</th><th>Should Trigger</th><th>Actions</th></tr></thead><tbody id="eval-body"></tbody></table>
+  <p id="summary"></p>
+  <script>
+    const EVAL_DATA = __EVAL_DATA_PLACEHOLDER__;
+    let evalItems = [...EVAL_DATA];
+    function render() {
+      const tbody = document.getElementById('eval-body');
+      tbody.innerHTML = '';
+      evalItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><textarea class="query-input" onchange="evalItems[${idx}].query=this.value">${item.query}</textarea></td><td><input type="checkbox" ${item.should_trigger?'checked':''} onchange="evalItems[${idx}].should_trigger=this.checked;render()"> ${item.should_trigger?'Yes':'No'}</td><td><button class="btn-delete" onclick="evalItems.splice(${idx},1);render()">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+      const t = evalItems.filter(i=>i.should_trigger).length;
+      document.getElementById('summary').textContent = `${evalItems.length} queries: ${t} trigger, ${evalItems.length-t} don't`;
+    }
+    function addRow() { evalItems.push({query:'',should_trigger:true}); render(); }
+    function exportEvalSet() {
+      const data = evalItems.filter(i=>i.query.trim()).map(i=>({query:i.query.trim(),should_trigger:i.should_trigger}));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+      a.download = 'eval_set.json'; a.click();
+    }
+    render();
+  </script>
+</body>
+</html>
