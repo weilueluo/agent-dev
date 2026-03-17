@@ -1,7 +1,7 @@
 {
   "name": "plan",
   "description": "Transforms vague feature ideas into complete feature requests through structured clarification. The plan skill coordinates repository analysis, ambiguity detection, and iterative user clarification to produce fully resolved feature specifications with no open questions.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"

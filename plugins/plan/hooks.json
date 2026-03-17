@@ -2,63 +2,24 @@
   "hooks": [
     {
       "event": "SessionStart",
-      "description": "Inject plan plugin operating rules and workflow expectations",
       "steps": [
         {
           "type": "context",
-          "message": "The plan plugin is active. Operating rules are in CLAUDE.md. The plan skill is the coordinator — it runs in the main context and orchestrates worker subagents. Available worker agents: repo-researcher, ambiguity-reviewer, risk-reviewer, problem-framing-reviewer. Available skills: plan, intake-and-scope, clarification-loop, feature-request-generation. Key rules: (1) Produce complete feature requests only — never implementation plans. (2) No novelty claim without repository evidence. (3) The clarification loop is mandatory — do not finalize until all material ambiguity is resolved. (4) Challenge wrong-problem framing. (5) Ask fewer but better questions."
+          "message": "Plan plugin active. Rules in CLAUDE.md. Key constraints: (1) Produce complete feature requests only. (2) No novelty claim without evidence. (3) Clarification loop is mandatory. (4) Challenge wrong-problem framing."
         }
       ]
     },
     {
       "event": "PreToolUse",
-      "description": "Block file modifications — this plugin analyzes, it does not edit",
       "conditions": {
         "toolNames": ["edit", "create"]
       },
       "steps": [
         {
           "type": "check",
-          "patterns": [
-            "**/*.ts", "**/*.js", "**/*.py", "**/*.go", "**/*.rs",
-            "**/*.java", "**/*.rb", "**/*.php", "**/*.swift", "**/*.kt",
-            "**/*.c", "**/*.cpp", "**/*.h", "**/*.cs",
-            "**/*.json", "**/*.yaml", "**/*.yml", "**/*.toml",
-            "**/*.sql", "**/*.graphql", "**/*.proto",
-            "**/*.html", "**/*.css", "**/*.scss",
-            "**/*.md", "**/*.txt", "**/*.cfg", "**/*.ini",
-            "**/*.env", "**/*.env.*",
-            "**/Dockerfile", "**/docker-compose.*",
-            "**/*.tf", "**/*.tfvars"
-          ],
+          "patterns": ["**/*"],
           "action": "warn",
-          "message": "The plan plugin is in analysis mode. It should not modify source files. If you are generating the final feature request, write it to the conversation output — do not create files in the repository."
-        }
-      ]
-    },
-    {
-      "event": "PreToolUse",
-      "description": "Reinforce evidence gathering expectations for repository research",
-      "conditions": {
-        "toolNames": ["grep", "glob", "view"]
-      },
-      "steps": [
-        {
-          "type": "context",
-          "message": "Gathering repository evidence. Remember: no novelty claim without evidence. Search thoroughly for related functionality — check code, tests, configs, docs, schemas, routes, UI components, and feature flags. Summarize findings as structured evidence for the decision ledger."
-        }
-      ]
-    },
-    {
-      "event": "PostToolUse",
-      "description": "Remind to update the decision ledger after evidence gathering",
-      "conditions": {
-        "toolNames": ["grep", "glob", "view"]
-      },
-      "steps": [
-        {
-          "type": "context",
-          "message": "Evidence gathered. Update the decision ledger with findings: what was found, what it means for the feature request, and whether it resolves any open questions or introduces new ones."
+          "message": "The plan plugin is analysis-only. Do not modify files. Write the final output to the conversation."
         }
       ]
     }
