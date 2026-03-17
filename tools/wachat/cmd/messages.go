@@ -3,13 +3,16 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"sync/atomic"
 	"time"
 
+	"github.com/mdp/qrterminal/v3"
 	"github.com/spf13/cobra"
 	"github.com/weilueluo/my-plugins/tools/wachat/internal/client"
 	"github.com/weilueluo/my-plugins/tools/wachat/internal/output"
 	"github.com/weilueluo/my-plugins/tools/wachat/internal/store"
-	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
@@ -43,6 +46,7 @@ var (
 	msgAfter   string
 	msgBefore  string
 	syncWait   int
+	syncReauth bool
 )
 
 func init() {
@@ -61,6 +65,8 @@ func init() {
 	messagesSearchCmd.Flags().IntVar(&msgLimit, "limit", 50, "Max results")
 
 	messagesSyncCmd.Flags().IntVar(&syncWait, "wait", 30, "Seconds to wait for history sync")
+	messagesSyncCmd.Flags().BoolVar(&syncReauth, "reauth", false, "Re-link device to trigger fresh history sync (requires QR scan)")
+	messagesSyncCmd.Flags().BoolVar(&authBrowser, "browser", false, "Show QR code in browser (used with --reauth)")
 }
 
 func runMessagesList(cmd *cobra.Command, args []string) {
@@ -95,7 +101,7 @@ func runMessagesList(cmd *cobra.Command, args []string) {
 		output.JSON(msgs)
 	} else {
 		if len(msgs) == 0 {
-			fmt.Println("No messages found. Try running 'wachat messages sync' first.")
+			fmt.Println("No messages found. Try running 'wachat messages sync --reauth' first.")
 			return
 		}
 		for _, m := range msgs {
@@ -127,7 +133,7 @@ func runMessagesSearch(cmd *cobra.Command, args []string) {
 		output.JSON(msgs)
 	} else {
 		if len(msgs) == 0 {
-			fmt.Println("No messages found. Try running 'wachat messages sync' first.")
+			fmt.Println("No messages found. Try running 'wachat messages sync --reauth' first.")
 			return
 		}
 		for _, m := range msgs {
@@ -151,24 +157,88 @@ func runMessagesSync(cmd *cobra.Command, args []string) {
 	}
 	defer msgStore.Close()
 
-	cli, err := client.ConnectExisting(ctx)
-	if err != nil {
-		output.Error("connection failed", err)
-	}
-	defer cli.Disconnect()
+	var count atomic.Int64
+	historySyncHandler := buildHistorySyncHandler(msgStore, &count)
 
-	count := 0
+	if syncReauth {
+		// Delete existing session to trigger fresh history sync
+		dbPath := filepath.Join(client.StoreDir(), "whatsmeow.db")
+		os.Remove(dbPath)
+		fmt.Println("Session cleared. Scan QR to re-link and sync history.")
 
-	// Get contacts for name resolution
-	contacts, _ := cli.Store.Contacts.GetAllContacts(ctx)
-	nameOf := func(jid types.JID) string {
-		if c, ok := contacts[jid]; ok {
-			return contactName(c)
+		cli, err := client.NewClient(ctx)
+		if err != nil {
+			output.Error("failed to create client", err)
 		}
-		return jid.User
+		defer cli.Disconnect()
+
+		cli.AddEventHandler(historySyncHandler)
+
+		qrChan, err := cli.GetQRChannel(ctx)
+		if err != nil {
+			output.Error("failed to get QR channel", err)
+		}
+
+		if err := cli.Connect(); err != nil {
+			output.Error("failed to connect", err)
+		}
+
+		// Wait for QR scan
+		authenticated := false
+		for evt := range qrChan {
+			switch evt.Event {
+			case "code":
+				if authBrowser {
+					openQRInBrowser(evt.Code)
+				} else {
+					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, cmd.OutOrStdout())
+				}
+				fmt.Println("\nScan QR code, then history sync will begin...")
+			case "success":
+				fmt.Println("✓ Authenticated! Waiting for history sync...")
+				authenticated = true
+			case "timeout":
+				output.Error("QR code expired — please try again", nil)
+			case "error":
+				output.Error("authentication error", fmt.Errorf("%v", evt.Error))
+			}
+			if authenticated {
+				break
+			}
+		}
+
+		fmt.Printf("Syncing messages for %d seconds...\n", syncWait)
+		time.Sleep(time.Duration(syncWait) * time.Second)
+	} else {
+		// Normal sync — just listen for new messages
+		cli, err := client.NewExistingClient(ctx)
+		if err != nil {
+			output.Error("connection failed", err)
+		}
+		defer cli.Disconnect()
+
+		cli.AddEventHandler(historySyncHandler)
+
+		if err := cli.Connect(); err != nil {
+			output.Error("failed to connect", err)
+		}
+
+		fmt.Printf("Syncing messages for %d seconds...\n", syncWait)
+		time.Sleep(time.Duration(syncWait) * time.Second)
 	}
 
-	cli.AddEventHandler(func(evt interface{}) {
+	if jsonOutput {
+		output.JSON(map[string]any{
+			"ok":             true,
+			"messages_saved": count.Load(),
+		})
+	} else {
+		fmt.Printf("✓ Synced %d messages\n", count.Load())
+	}
+}
+
+func buildHistorySyncHandler(msgStore *store.MessageStore, count *atomic.Int64) func(interface{}) {
+	return func(evt interface{}) {
 		switch v := evt.(type) {
 		case *events.Message:
 			sender := v.Info.Sender
@@ -177,31 +247,91 @@ func runMessagesSync(cmd *cobra.Command, args []string) {
 			if body == "" {
 				return
 			}
+			senderName := v.Info.PushName
+			if senderName == "" {
+				senderName = sender.User
+			}
 			err := msgStore.InsertMessage(store.Message{
 				ID:         v.Info.ID,
 				ChatJID:    chat.String(),
 				SenderJID:  sender.String(),
-				SenderName: nameOf(sender),
+				SenderName: senderName,
 				Body:       body,
 				Timestamp:  v.Info.Timestamp.Unix(),
 				Type:       "text",
 			})
 			if err == nil {
-				count++
+				count.Add(1)
+			}
+
+		case *events.HistorySync:
+			if v.Data == nil {
+				return
+			}
+			for _, conv := range v.Data.GetConversations() {
+				chatJID := conv.GetID()
+				for _, hMsg := range conv.GetMessages() {
+					wmi := hMsg.GetMessage()
+					if wmi == nil {
+						continue
+					}
+					msg := wmi.GetMessage()
+					key := wmi.GetKey()
+					if msg == nil || key == nil {
+						continue
+					}
+
+					body := ""
+					if msg.GetConversation() != "" {
+						body = msg.GetConversation()
+					} else if ext := msg.GetExtendedTextMessage(); ext != nil {
+						body = ext.GetText()
+					} else if img := msg.GetImageMessage(); img != nil {
+						if img.GetCaption() != "" {
+							body = "[image] " + img.GetCaption()
+						} else {
+							body = "[image]"
+						}
+					} else if vid := msg.GetVideoMessage(); vid != nil {
+						if vid.GetCaption() != "" {
+							body = "[video] " + vid.GetCaption()
+						} else {
+							body = "[video]"
+						}
+					} else if doc := msg.GetDocumentMessage(); doc != nil {
+						body = "[document] " + doc.GetFileName()
+					} else if msg.GetAudioMessage() != nil {
+						body = "[audio]"
+					}
+					if body == "" {
+						continue
+					}
+
+					senderJID := key.GetParticipant()
+					if senderJID == "" {
+						senderJID = key.GetRemoteJID()
+					}
+					senderName := wmi.GetPushName()
+					if senderName == "" {
+						senderName = senderJID
+					}
+
+					ts := int64(wmi.GetMessageTimestamp())
+					err := msgStore.InsertMessage(store.Message{
+						ID:         key.GetID(),
+						ChatJID:    chatJID,
+						SenderJID:  senderJID,
+						SenderName: senderName,
+						Body:       body,
+						Timestamp:  ts,
+						Type:       "text",
+					})
+					if err == nil {
+						count.Add(1)
+					}
+				}
 			}
 		}
-	})
-
-	fmt.Printf("Syncing messages for %d seconds...\n", syncWait)
-	time.Sleep(time.Duration(syncWait) * time.Second)
-
-	if jsonOutput {
-		output.JSON(map[string]any{
-			"ok":             true,
-			"messages_saved": count,
-		})
-	} else {
-		fmt.Printf("✓ Synced %d messages\n", count)
 	}
 }
 
@@ -233,7 +363,7 @@ func extractBody(msg *events.Message) string {
 	if doc := m.GetDocumentMessage(); doc != nil {
 		return "[document] " + doc.GetFileName()
 	}
-	if aud := m.GetAudioMessage(); aud != nil {
+	if aud := msg.Message.GetAudioMessage(); aud != nil {
 		return "[audio]"
 	}
 	return ""

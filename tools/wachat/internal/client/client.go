@@ -99,6 +99,19 @@ func ConnectExisting(ctx context.Context) (*whatsmeow.Client, error) {
 	return cli, nil
 }
 
+// NewExistingClient creates a client for an already-paired device without connecting.
+// Use when you need to register event handlers before connecting.
+func NewExistingClient(ctx context.Context) (*whatsmeow.Client, error) {
+	cli, err := NewClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if cli.Store.ID == nil {
+		return nil, fmt.Errorf("not logged in — run 'wachat auth' first")
+	}
+	return cli, nil
+}
+
 // IsLoggedIn checks if a device session exists without fully connecting.
 func IsLoggedIn(ctx context.Context) (bool, *types.JID, error) {
 	container, err := newContainer(ctx)

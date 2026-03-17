@@ -3,6 +3,10 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/mdp/qrterminal/v3"
@@ -23,9 +27,12 @@ var authStatusCmd = &cobra.Command{
 	Run:   runAuthStatus,
 }
 
+var authBrowser bool
+
 func init() {
 	rootCmd.AddCommand(authCmd)
 	authCmd.AddCommand(authStatusCmd)
+	authCmd.Flags().BoolVar(&authBrowser, "browser", false, "Show QR code in browser instead of terminal")
 }
 
 func runAuth(cmd *cobra.Command, args []string) {
@@ -76,7 +83,11 @@ func runAuth(cmd *cobra.Command, args []string) {
 			}
 			switch evt.Event {
 			case "code":
-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, cmd.OutOrStdout())
+				if authBrowser {
+					openQRInBrowser(evt.Code)
+				} else {
+					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, cmd.OutOrStdout())
+				}
 				fmt.Println("\nWaiting for scan...")
 			case "success":
 				if jsonOutput {
@@ -119,4 +130,51 @@ func runAuthStatus(cmd *cobra.Command, args []string) {
 			fmt.Println("Not authenticated. Run 'wachat auth' to log in.")
 		}
 	}
+}
+
+func openQRInBrowser(code string) {
+	htmlPath := filepath.Join(os.TempDir(), "wachat-qr.html")
+	html := fmt.Sprintf(`<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>wachat — Scan QR Code</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+  body { display:flex; flex-direction:column; align-items:center; justify-content:center;
+         min-height:100vh; margin:0; font-family:system-ui; background:#111; color:#fff; }
+  h2 { margin-bottom:8px; }
+  p { color:#aaa; margin-top:4px; }
+  canvas { border-radius:12px; margin-top:16px; }
+</style></head><body>
+<h2>Scan with WhatsApp</h2>
+<p>Settings → Linked Devices → Link a Device</p>
+<div id="qr"></div>
+<p style="margin-top:24px;font-size:13px;color:#666">This page auto-refreshes. Keep it open.</p>
+<script>
+  var qr = qrcode(0, 'L');
+  qr.addData(%q);
+  qr.make();
+  document.getElementById('qr').innerHTML = qr.createSvgTag(8, 16);
+  var svg = document.querySelector('#qr svg');
+  if (svg) { svg.style.borderRadius = '12px'; }
+</script></body></html>`, code)
+
+	if err := os.WriteFile(htmlPath, []byte(html), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to write QR HTML: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Opening QR code in browser: %s\n", htmlPath)
+	openBrowser(htmlPath)
+}
+
+func openBrowser(url string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	case "darwin":
+		cmd = exec.Command("open", url)
+	default:
+		cmd = exec.Command("xdg-open", url)
+	}
+	cmd.Start()
 }
