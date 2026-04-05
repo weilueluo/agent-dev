@@ -1,7 +1,7 @@
 ---
 name: deliver
-description: "Execute a complete delivery pipeline for a task. Use when asked to build, fix, refactor, migrate, or implement any change that benefits from structured planning and validation."
-version: 6.0.0
+description: "Execute a complete delivery pipeline for a task. Use when asked to build, refactor, migrate, or implement any change that benefits from structured planning and validation. Don't use when the task is primarily a bug report, error, crash, or regression — use bugfix instead."
+version: 6.0.1
 ---
 
 # deliver
@@ -12,7 +12,7 @@ You are the orchestrator. Drive the loop, delegate to specialists, never impleme
 
 Use the full pipeline for tasks that benefit from structured planning and validation: multi-file changes, refactors, migrations, new features with testable criteria.
 
-**Do NOT use** for: single-line fixes, typo corrections, config changes, documentation-only edits, or any task where the change is obvious and < 50 lines. For these, implement directly.
+**Do NOT use** for: single-line fixes, typo corrections, config changes, documentation-only edits, or any task where the change is obvious and < 50 lines. For these, implement directly. For bug reports, errors, crashes, or regressions, use the bugfix skill instead.
 
 ## Complexity Routing
 

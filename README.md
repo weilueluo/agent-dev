@@ -26,7 +26,8 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 
 | Plugin | Version | Description |
 |--------|---------|-------------|
-| [`deliver`](plugins/deliver/) | 6.0.0 | Adversarial delivery pipeline — exploration, planning, critic review, implementation, verification |
+| [`deliver`](plugins/deliver/) | 6.0.1 | Adversarial delivery pipeline — exploration, planning, critic review, implementation, verification |
+| [`bugfix`](plugins/bugfix/) | 1.0.0 | Structured bug resolution — intake, reproduction, root-cause diagnosis, fix, verification, systemic hardening |
 | [`plan`](plugins/plan/) | 1.1.0 | Transforms vague feature ideas into complete feature requests through structured clarification |
 | [`chats`](plugins/chats/) | 1.1.0 | Chat platform integrations — WhatsApp messaging and WeChat local message search |
 | [`dev`](plugins/dev/) | 1.1.0 | Core engineering principles for AI-maintained codebases, production-grade frontend interfaces, and CodePen integration |

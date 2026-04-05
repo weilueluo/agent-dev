@@ -32,6 +32,7 @@ All work follows `dev:principles`. Read before every task.
 | Plugin | AGENTS.md | Description |
 |--------|-----------|-------------|
 | [`deliver`](plugins/deliver/) | [AGENTS.md](plugins/deliver/AGENTS.md) | Adversarial delivery pipeline — explore, plan, critic, implement, verify |
+| [`bugfix`](plugins/bugfix/) | [AGENTS.md](plugins/bugfix/AGENTS.md) | Structured bug resolution — intake, reproduce, diagnose, fix, harden |
 | [`plan`](plugins/plan/) | [AGENTS.md](plugins/plan/AGENTS.md) | Transforms vague ideas into complete feature requests |
 | [`dev`](plugins/dev/) | [AGENTS.md](plugins/dev/AGENTS.md) | Engineering principles, frontend design, CodePen |
 | [`chats`](plugins/chats/) | [AGENTS.md](plugins/chats/AGENTS.md) | WhatsApp messaging, WeChat local search |
