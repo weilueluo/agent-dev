@@ -70,6 +70,8 @@ Based on the user interview, fill in these components:
 
 ### Skill Writing Guide
 
+Skills are agent instructions — follow `dev:principles`: keep guidance concise (Build for AI), define clear input/output contracts (Clear Boundary), encourage verifiable outputs (Test-Centric).
+
 #### Anatomy of a Skill
 
 ```

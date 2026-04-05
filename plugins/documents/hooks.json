@@ -1,3 +1,14 @@
 {
-  "hooks": []
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "description": "Inject engineering principles reference at session start",
+      "steps": [
+        {
+          "type": "context",
+          "message": "Engineering principles from dev:principles apply. Key for document processing: validate outputs with provided scripts (Test-Centric), never embed credentials in documents (Safe Automation), log errors with structured context (Observability)."
+        }
+      ]
+    }
+  ]
 }

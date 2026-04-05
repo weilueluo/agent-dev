@@ -40,3 +40,10 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+## Engineering Standards
+
+- Include component tests or visual regression hooks for React/Vue components (Test-Centric)
+- Components must have typed props/interfaces (Clear Boundary)
+- Never embed API keys or secrets in frontend code (Safe Automation)
+- Check latest framework docs before using APIs (Tooling over Memory)

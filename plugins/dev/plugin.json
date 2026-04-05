@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "description": "Development skills for building production-grade frontend interfaces and downloading CodePen projects.",
-  "version": "1.0.0",
+  "description": "Development skills — core engineering principles for AI-maintained codebases, production-grade frontend interfaces, and CodePen integration.",
+  "version": "1.1.0",
   "author": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"

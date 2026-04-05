@@ -26,11 +26,11 @@ A personal collection of Copilot CLI plugins by **weilueluo**.
 
 | Plugin | Version | Description |
 |--------|---------|-------------|
-| [`deliver`](plugins/deliver/) | 3.1.0 | Production multi-stage delivery pipeline — orchestrates exploration, planning, critique, implementation, testing, and review |
-| [`plan`](plugins/plan/) | 1.0.0 | Transforms vague feature ideas into complete feature requests through structured clarification |
-| [`chats`](plugins/chats/) | 1.0.0 | Chat platform integrations — WhatsApp messaging, search, contacts, and group management via `wacli` |
-| [`dev`](plugins/dev/) | 1.0.0 | Development skills for building production-grade frontend interfaces with high design quality |
-| [`documents`](plugins/documents/) | 1.0.0 | Document processing skills for Word, PDF, PowerPoint, Excel, and collaborative co-authoring workflows |
+| [`deliver`](plugins/deliver/) | 3.2.0 | Production multi-stage delivery pipeline — orchestrates exploration, planning, critique, implementation, testing, and review |
+| [`plan`](plugins/plan/) | 1.1.0 | Transforms vague feature ideas into complete feature requests through structured clarification |
+| [`chats`](plugins/chats/) | 1.1.0 | Chat platform integrations — WhatsApp messaging and WeChat local message search |
+| [`dev`](plugins/dev/) | 1.1.0 | Core engineering principles for AI-maintained codebases, production-grade frontend interfaces, and CodePen integration |
+| [`documents`](plugins/documents/) | 1.1.0 | Document processing skills for Word, PDF, PowerPoint, Excel, and collaborative co-authoring workflows |
 
 ## Repository Structure
 

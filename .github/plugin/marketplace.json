@@ -13,7 +13,7 @@
     {
       "name": "deliver",
       "description": "Production multi-stage delivery pipeline. The deliver skill orchestrates exploration, planning, critique, implementation, testing, and review — with optional delegation to specialist agents, quality gates, and explicit correction paths.",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
@@ -25,7 +25,7 @@
     {
       "name": "plan",
       "description": "Transforms vague feature ideas into complete feature requests through structured clarification. The plan skill coordinates repository analysis, ambiguity detection, and iterative user clarification to produce fully resolved feature specifications with no open questions.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
@@ -37,19 +37,19 @@
     {
       "name": "chats",
       "description": "Chat platform integrations. Skills for interacting with messaging platforms like WhatsApp — search conversations, send messages, manage contacts and groups, all from the CLI.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
       },
       "source": "./plugins/chats",
       "category": "communication",
-      "keywords": ["chat", "messaging", "whatsapp", "contacts", "groups", "send", "search"]
+      "keywords": ["chat", "messaging", "whatsapp", "wechat", "contacts", "groups", "send", "search"]
     },
     {
       "name": "dev",
-      "description": "Development skills for building production-grade frontend interfaces with high design quality.",
-      "version": "1.0.0",
+      "description": "Development skills — core engineering principles for AI-maintained codebases, production-grade frontend interfaces, and CodePen integration.",
+      "version": "1.1.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
@@ -61,7 +61,7 @@
     {
       "name": "documents",
       "description": "Document processing skills for creating, editing, and manipulating various document formats including Word (.docx), PDF, PowerPoint (.pptx), Excel (.xlsx), and collaborative document co-authoring workflows.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"

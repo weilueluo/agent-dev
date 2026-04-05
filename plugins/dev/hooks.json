@@ -1,3 +1,14 @@
 {
-  "hooks": []
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "description": "Inject engineering principles reference at session start",
+      "steps": [
+        {
+          "type": "context",
+          "message": "Engineering principles from dev:principles apply. Key for development: write tests first (Test-Centric), enforce typed interfaces (Clear Boundary), never embed secrets (Safe Automation), check latest framework docs (Tooling over Memory)."
+        }
+      ]
+    }
+  ]
 }

@@ -1,3 +1,14 @@
 {
-  "hooks": []
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "description": "Inject engineering principles reference at session start",
+      "steps": [
+        {
+          "type": "context",
+          "message": "Engineering principles from dev:principles apply. Key for chat integrations: never send messages or log PII without consent (Safe Automation), use --json for structured output (Observability), verify API behavior with tools (Tooling over Memory)."
+        }
+      ]
+    }
+  ]
 }
