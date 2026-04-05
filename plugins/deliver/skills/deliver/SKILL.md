@@ -1,164 +1,78 @@
 ---
 name: deliver
 description: "Execute a complete delivery pipeline for a task. Use when asked to build, fix, refactor, migrate, or implement any change that benefits from structured planning and validation."
-version: 5.0.0
+version: 5.0.1
 ---
 
 # deliver
 
-You are the pipeline orchestrator. You run a GAN-style adversarial loop — proposer vs critic, grounded by external verification. You delegate each step to the correct specialist agent and manage iteration, routing, and stop conditions.
-
-**You are the orchestrator. Do NOT delegate to another orchestrator.** Delegate each step to the specialist agent for that step.
-
-## When to Use
-
-When a task benefits from structured exploration, planning, implementation, and verification. Not needed for trivial one-line changes.
+You are the orchestrator. Run the GAN loop — proposer vs critic, grounded by external verification. Delegate steps to specialist agents. Do NOT delegate orchestration.
 
 ## Principles
 
-All steps operate under the engineering principles in `dev:principles`. Key rules for the loop:
+Follow `dev:principles`. Additionally:
 
-- **Do not trust own output without critic.** Every proposal gets adversarial review.
+- **Contract-first.** Every task → goals, constraints, testable success criteria.
+- **Do not trust without critic.** Every proposal gets adversarial review.
 - **Do not rely on agreement.** Prefer simple, correct, testable solutions.
-- **Use external checks.** Tests, types, builds, lint, API responses — ground truth over reasoning.
-- **Contract-first.** Convert every task into goals, constraints, and testable success criteria before work begins.
-
-## Inputs
-
-- **task description**: What needs to be done.
+- **External ground truth.** Tests, types, builds, lint — not reasoning.
 
 ## Process
 
-### Step 1 — Frame the Contract
+### 1 — Frame
 
-Before any exploration or planning, convert the task description into a clear contract:
+Convert task into a **contract**:
 
-- **Goals**: What must be achieved. Specific, measurable outcomes.
-- **Constraints**: What must not be violated. Boundaries and invariants.
-- **Success criteria**: Testable conditions. Each criterion must be verifiable by an external check (test, type check, build, lint, API call) or by mechanical inspection (file exists, config value set, pattern present). If a criterion cannot be externally verified, flag it.
+- **Goals** — specific, measurable outcomes
+- **Constraints** — invariants that must not be violated
+- **Success criteria** — each verifiable by external check (test, typecheck, build, lint, mechanical inspection). Flag any that cannot be externally verified.
 
-The contract is the single source of truth for the entire loop. All steps reference it.
+The contract is the single source of truth. All steps reference it.
 
-### Step 2 — Explore
+### 2 — Explore
 
-Delegate to the **explorer agent**.
+Delegate to **explorer agent**. Provide: contract + task description.
 
-Provide: the contract (goals, constraints, success criteria) and the task description.
+Runs **once**. Re-explore only on explicit `re-explore` signal from critic/verifier — targeted, not full.
 
-The explorer maps the codebase, surfaces constraints, catalogs known facts, identifies unknowns, and flags risk hotspots. Collect the exploration report.
+### 3 — GAN Loop (max 3 iterations)
 
-Exploration runs **once** at the start. Re-exploration only happens if the critic or verifier explicitly signals an exploration gap (see loop routing below). Re-exploration is always **targeted** — focused on the specific gap, not a full re-run.
+Each iteration: **propose → critic → verify → decide**.
 
-### Step 3 — GAN Loop
+#### 3a — Propose
 
-Run the adversarial loop. Each iteration has four steps: **propose → critic → verify → decide**.
+Two sub-steps in sequence:
 
-**Max iterations: 3.** Track iteration count and improvement across iterations.
+1. **Plan** → delegate to **proposer agent**. Creates/revises strategy, phases, acceptance criteria, non-goals, mitigations. On iteration 2+: must address every blocking issue from critic/verifier and show what changed.
 
-#### Step 3a — Propose
+2. **Implement** → delegate to **implementer agent**. Executes plan, verifies locally, documents changes and deviations.
 
-The propose step has two sub-steps executed in sequence:
+#### 3b — Critic
 
-**Sub-step 1: Plan** — Delegate to the **proposer agent** (planning mode).
+Delegate to **critic agent**. Adversarial — finds real flaws, does not confirm.
 
-Provide: the contract, exploration report, and (if iteration > 1) the previous critic report and verify report.
+Produces: issues (with severity + evidence), strengths, and exactly one **signal**:
+- `accept` — proceed to verify
+- `revise-plan` — strategy flawed
+- `revise-implementation` — plan sound, code has issues
+- `re-explore` — critical context missing
 
-The proposer creates or revises:
-- A strategy and execution plan with phased steps
-- Acceptance criteria per phase (derived from the contract's success criteria)
-- Non-goals
-- Risk mitigations
+#### 3c — Verify
 
-On iteration 1, the proposer starts fresh. On subsequent iterations, the proposer must address every blocking issue raised by the critic and every failing check from the verifier. The proposer must not simply restate the previous plan — it must show what changed and why.
+Delegate to **verifier agent**. Runs external checks: build → typecheck → lint → tests → write tests for gaps → full suite.
 
-**Sub-step 2: Implement** — Delegate to the **implementer agent**.
+Produces: per-criterion pass/partial/fail/untested, failure classification (blocking/degraded/cosmetic), confidence (high/medium/low), residual risk, blocking failure count.
 
-Provide: the plan from sub-step 1, exploration report, and (if iteration > 1) the previous critic report, verify report, and prior implementation context.
+#### 3d — Decide
 
-The implementer executes the plan incrementally, verifies changes locally (build, typecheck if available), and documents files changed and any deviations.
+Orchestrator decides (do not delegate):
 
-#### Step 3b — Critic
+- **ACCEPT** — all criteria pass + no blocking critic issues + confidence ≥ medium
+- **ITERATE** — blocking failures or unmet criteria remain → route via critic signal
+- **ESCALATE** — max 3 iterations reached, OR no improvement after 2 iterations (measured: blocking verify failures + blocking/high critic issues), OR unresolvable issue
 
-Delegate to the **critic agent**.
+On escalate: report what was attempted, what failed, and what options remain.
 
-Provide: the contract, exploration report, the plan from 3a, and the implementation report from 3a.
+### 4 — Deliver
 
-The critic is **adversarial**. Its job is to find real flaws, not to confirm the proposal. Rules:
-
-- Do not trust the proposer's claims. Verify against the contract and exploration findings.
-- Do not just agree. If everything looks correct, explain *why* with evidence — silence is not acceptance.
-- Challenge assumptions, find missing edge cases, check constraint violations.
-- Prefer simple, correct solutions. Flag unnecessary complexity.
-- Reference `dev:principles` and `knowledge/planning-patterns.md` anti-patterns.
-
-The critic produces:
-- **Specific issues** with evidence and severity (blocking / high / medium / low)
-- **What's working** — strengths to preserve
-- **Signal**: one of:
-  - `accept` — proposal is sound, proceed to verify
-  - `revise-plan` — strategy or plan has flaws (specify what)
-  - `revise-implementation` — plan is sound but implementation has issues (specify what)
-  - `re-explore` — critical exploration gap discovered (specify what's missing)
-
-#### Step 3c — Verify
-
-Delegate to the **verifier agent**.
-
-Provide: the contract, plan, implementation report, and critic report.
-
-The verifier runs **external checks** — these are ground truth, not reasoning:
-
-1. **Build** the code
-2. **Type check** if the project has a type checker
-3. **Lint** if the project has a linter
-4. **Run existing test suite**
-5. **Write tests for gaps** — if success criteria lack test coverage, add tests
-6. **Run the full test suite** including new tests
-
-The verifier also:
-- **Classifies failures**: blocking (must fix), degraded (should fix), cosmetic (can defer)
-- **Maps results to success criteria**: for each criterion in the contract, report pass / partial / fail / untested
-- **Reports residual risk**: what's not covered by checks
-- **Estimates confidence**: high (>90%), medium (70-90%), low (<70%)
-
-#### Step 3d — Decide
-
-The orchestrator (you) makes the decision. Do not delegate this step.
-
-Evaluate the critic report and verify report against the contract's success criteria:
-
-**ACCEPT** if ALL of:
-- All success criteria pass in verification (or are verified by mechanical inspection)
-- No blocking issues from the critic remain unaddressed
-- Confidence is medium or higher
-
-**ITERATE** if ANY of:
-- Blocking verification failures exist → route based on critic signal
-- Blocking critic issues remain → route to next iteration's propose
-- Success criteria not yet met → route to next iteration
-
-**ESCALATE TO USER** if ANY of:
-- Max 3 iterations reached without acceptance
-- No measurable improvement after 2 iterations. Improvement is measured by: fewer blocking verification failures AND fewer blocking/high-severity critic issues compared to previous iteration. If both counts are equal or worse, there is no improvement.
-- Critic or verifier signals an unresolvable issue (e.g., contradictory requirements, missing external dependency)
-
-When escalating, report: what was attempted, what failed, what the critic found, what the verifier found, and what options remain.
-
-**Loop routing for next iteration:**
-- Critic signaled `revise-plan` → next iteration's propose revises strategy
-- Critic signaled `revise-implementation` → next iteration's propose keeps plan, revises implementation
-- Critic signaled `re-explore` → run targeted re-exploration before next propose
-- Verifier found blocking failures → feed failure details into next iteration's propose
-
-### Step 4 — Deliver
-
-When decide returns ACCEPT, produce a delivery report:
-
-- **Task**: what was requested
-- **Contract**: goals, constraints, success criteria
-- **Iterations**: how many loop iterations ran
-- **Final state**: which success criteria pass, which have residual risk
-- **Files changed**: list of all files modified
-- **Confidence**: overall confidence level from verifier
-- **Key decisions**: notable choices and trade-offs made during the loop
-- **Follow-ups**: items for later (if any deferred issues exist)
+On ACCEPT, produce: task summary, contract, iteration count, criteria status, files changed, confidence, key decisions, follow-ups.
