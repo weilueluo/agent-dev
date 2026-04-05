@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/weilueluo/my-plugins/tools/wachat/internal/client"
-	"github.com/weilueluo/my-plugins/tools/wachat/internal/output"
+	"github.com/weilueluo/agent-dev/tools/wachat/internal/client"
+	"github.com/weilueluo/agent-dev/tools/wachat/internal/output"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"
 	waE2E "go.mau.fi/whatsmeow/proto/waE2E"

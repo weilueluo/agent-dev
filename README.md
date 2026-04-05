@@ -1,13 +1,13 @@
-# wll — Copilot CLI Plugin Marketplace
+# agent-dev — Agent Skills Marketplace
 
-A personal collection of Copilot CLI plugins by **weilueluo**.
+Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot CLI, Claude Code, Codex CLI, and Gemini CLI.
 
 ## Quick Start
 
 ### Add this marketplace
 
 ```
-/plugin marketplace add weilueluo/my-plugins
+/plugin marketplace add weilueluo/agent-dev
 ```
 
 ### Browse available plugins
@@ -19,7 +19,7 @@ A personal collection of Copilot CLI plugins by **weilueluo**.
 ### Install a plugin
 
 ```
-/plugin install deliver@wll
+/plugin install deliver@agent-dev
 ```
 
 ## Available Plugins
@@ -35,7 +35,7 @@ A personal collection of Copilot CLI plugins by **weilueluo**.
 ## Repository Structure
 
 ```
-├── plugins/            # Plugins developed and maintained by weilueluo
+├── plugins/            # Agent skill plugins
 │   ├── chats/          # Chat platform integrations (WhatsApp)
 │   ├── deliver/        # Delivery pipeline plugin
 │   ├── dev/            # Frontend development skills

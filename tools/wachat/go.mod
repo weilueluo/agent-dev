@@ -1,4 +1,4 @@
-module github.com/weilueluo/my-plugins/tools/wachat
+module github.com/weilueluo/agent-dev/tools/wachat
 
 go 1.25.0
 

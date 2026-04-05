@@ -11,8 +11,8 @@ import (
 
 	"github.com/mdp/qrterminal/v3"
 	"github.com/spf13/cobra"
-	"github.com/weilueluo/my-plugins/tools/wachat/internal/client"
-	"github.com/weilueluo/my-plugins/tools/wachat/internal/output"
+	"github.com/weilueluo/agent-dev/tools/wachat/internal/client"
+	"github.com/weilueluo/agent-dev/tools/wachat/internal/output"
 )
 
 var authCmd = &cobra.Command{

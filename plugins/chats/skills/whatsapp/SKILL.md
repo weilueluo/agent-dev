@@ -13,13 +13,13 @@ Wraps [`wachat`](../../tools/wachat/) — a cross-platform WhatsApp CLI built on
 Before running any command, verify wachat is available:
 
 ```bash
-command -v wachat >/dev/null 2>&1 || go install github.com/weilueluo/my-plugins/tools/wachat@latest
+command -v wachat >/dev/null 2>&1 || go install github.com/weilueluo/agent-dev/tools/wachat@latest
 ```
 
 On Windows (PowerShell):
 ```powershell
 Get-Command wachat -ErrorAction SilentlyContinue | Out-Null
-if (-not $?) { go install github.com/weilueluo/my-plugins/tools/wachat@latest }
+if (-not $?) { go install github.com/weilueluo/agent-dev/tools/wachat@latest }
 ```
 
 If Go is not available, tell the user to download a pre-built binary from the releases page.

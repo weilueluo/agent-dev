@@ -1,6 +1,6 @@
 {
-  "name": "wll",
-  "description": "Personal Copilot CLI plugin collection by weilueluo",
+  "name": "agent-dev",
+  "description": "Cross-platform agent skills for AI-powered CLI tools",
   "owner": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"

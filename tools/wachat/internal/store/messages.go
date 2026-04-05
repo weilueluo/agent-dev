@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weilueluo/my-plugins/tools/wachat/internal/client"
+	"github.com/weilueluo/agent-dev/tools/wachat/internal/client"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 )
