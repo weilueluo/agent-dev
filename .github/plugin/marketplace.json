@@ -12,8 +12,8 @@
   "plugins": [
     {
       "name": "deliver",
-      "description": "Production multi-stage delivery pipeline. The deliver skill orchestrates exploration, planning, critique, implementation, testing, and review — with optional delegation to specialist agents, quality gates, and explicit correction paths.",
-      "version": "3.2.0",
+      "description": "Adversarial delivery pipeline. Orchestrates exploration, planning, critic review, implementation, and verification — with specialist agents, quality gates, and explicit correction paths.",
+      "version": "6.0.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
