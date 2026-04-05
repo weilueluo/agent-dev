@@ -6,20 +6,20 @@
       "steps": [
         {
           "type": "context",
-          "message": "The deliver plugin is active. Operating rules are in AGENTS.md and OPERATING-RULES.md. The deliver skill orchestrates a GAN-style adversarial loop: FRAME → EXPLORE → LOOP(PROPOSE → CRITIC → VERIFY → DECIDE). Available agents: explorer, proposer (planner.agent.md), critic (plan-critic.agent.md), implementer, verifier (tester.agent.md). Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, build-execution-graph. Key rules: (1) Contract-first — goals, constraints, testable success criteria. (2) Do not trust own output without adversarial critic. (3) External verification — tests, types, builds are ground truth. (4) Stop: accept when verified, escalate when stalled or max iterations. Engineering principles from dev:principles apply — key: Test-Centric, Clear Boundary, Safe Automation."
+          "message": "The deliver plugin is active. Operating rules are in AGENTS.md and OPERATING-RULES.md. The deliver skill orchestrates: FRAME → EXPLORE → LOOP(PLAN → CRITIC → IMPLEMENT → VERIFY → DECIDE). Max 3 iterations. Available agents: explorer, planner (planner.agent.md), critic (critic.agent.md), implementer (implementer.agent.md), verifier (tester.agent.md). Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, build-execution-graph. Key rules: (1) Contract-first — goals, constraints, testable success criteria. (2) Critic before code — plan is challenged before implementation. (3) External verification is ground truth. (4) Escalate on stall, don't auto-accept. Engineering principles from dev:principles apply."
         }
       ]
     },
     {
       "event": "PostToolUse",
-      "description": "Remind about loop tracking after file modifications",
+      "description": "Remind about change tracking after file modifications",
       "conditions": {
         "toolNames": ["edit", "create"]
       },
       "steps": [
         {
           "type": "context",
-          "message": "File modified. If executing in the GAN loop: track this change in the implementation record (files_changed). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
+          "message": "File modified. If executing in the deliver loop: track this change in the implementation record (files_changed). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
         }
       ]
     },

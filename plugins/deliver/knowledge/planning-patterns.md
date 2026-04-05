@@ -1,6 +1,6 @@
 # Planning Patterns
 
-Reference these during the GAN loop's propose and critic steps.
+Reference these during the deliver loop's plan and critic steps.
 
 ## Strategy Patterns
 
@@ -44,15 +44,15 @@ Reference these during the GAN loop's propose and critic steps.
 
 **Self-Trust** — Accepting own output without adversarial review. Fix: every proposal goes through the critic. Verify claims with external checks.
 
-**Agreement Bias** — Critic agrees with proposer without evidence. Fix: critic must cite evidence for acceptance. Silence is not acceptance.
+**Agreement Bias** — Critic agrees with planner without evidence. Fix: critic must cite evidence for acceptance. Silence is not acceptance.
 
-## GAN Loop Patterns
+## Loop Patterns
 
 **Convergence** — Each iteration should show measurable improvement: fewer blocking failures, fewer high-severity issues. Track these counts. If counts don't improve after 2 iterations, escalate.
 
-**Distinct Failure Routing** — Plan flaws and implementation flaws need different responses. Critic signals `revise-plan` vs `revise-implementation` to route correctly. Mixing them wastes iterations.
+**Distinct Failure Routing** — Plan flaws route back to planning. Implementation failures surface through verification, feeding into the next planning iteration. The critic reviews plans before code exists, so its signals are `revise-plan` or `re-explore`. Verification failures feed details into the next iteration's planner.
 
-**Contract Anchoring** — All steps reference the contract. When the proposer drifts, the critic catches it by checking against goals, constraints, and success criteria. When the critic drifts, the verifier catches it with external checks.
+**Contract Anchoring** — All steps reference the contract. When the planner drifts, the critic catches it by checking against goals, constraints, and success criteria. When the critic drifts, the verifier catches it with external checks.
 
 ## Learning Log
 

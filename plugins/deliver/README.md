@@ -1,95 +1,68 @@
-# Agent Pipeline
+# Deliver Pipeline
 
-A GAN-style adversarial delivery pipeline plugin for GitHub Copilot CLI. The proposer creates plans and implements them; the critic adversarially challenges every proposal; the verifier provides ground truth through external checks. The loop iterates until verification passes or stop conditions are met.
+An adversarial delivery pipeline plugin for GitHub Copilot CLI. The planner creates strategy; the critic challenges the plan before code is written; the implementer executes; the verifier provides ground truth through external checks. The loop iterates until verification passes or stop conditions are met.
 
-## Architecture
+## Loop
 
 ```
 deliver skill (orchestrator)
   ├── Step 1: Frame         → contract (goals, constraints, testable criteria)
-  ├── Step 2: Explore       → explorer agent (once; re-explore on signal)
-  └── Step 3: GAN Loop (max 3 iterations)
-      ├── 3a: Propose       → proposer agent (plan then implement)
-      ├── 3b: Critic        → critic agent (adversarial)
-      ├── 3c: Verify        → verifier agent (external checks)
-      └── 3d: Decide        → orchestrator (accept / iterate / escalate)
+  ├── Step 2: Explore       → explorer agent (once; targeted re-explore on signal)
+  └── Step 3: Loop (max 3 iterations)
+      ├── 3a: Plan          → planner agent (strategy + phased execution)
+      ├── 3b: Critic        → critic agent (adversarial plan review)
+      ├── 3c: Implement     → implementer agent (execute plan)
+      ├── 3d: Verify        → verifier agent (external checks + test gaps)
+      └── 3e: Decide        → orchestrator (accept / iterate / escalate)
 ```
 
-### Why This Architecture
+### Why Critic Before Code
 
-**GAN-style adversarial loop**:
-- The proposer and critic are adversarial — the critic's job is to find real flaws, not confirm
-- External verification (tests, build, types) provides ground truth that neither proposer nor critic can argue with
-- The loop naturally converges: each iteration must address blocking issues from the previous
+The critic challenges the plan **before implementation begins**. This catches strategy flaws, missing edge cases, and constraint violations before any code is written — preventing wasted implementation churn. A `revise-plan` signal costs nothing. A `revise-plan` signal after implementation costs an entire iteration.
 
-**Contract-first**:
-- Every task starts as goals + constraints + testable success criteria
-- All steps reference the contract — no scope drift
-- Success criteria must be externally verifiable
+### Key Rules
 
-**Simple, correct, testable**:
-- Prefer the simpler solution when two meet the contract
-- Do not trust reasoning without external verification
-- Stop conditions prevent infinite loops and force escalation
+- **Contract-first.** Goals, constraints, testable success criteria. All steps reference the contract.
+- **Critic before code.** Plan is adversarially challenged before implementation.
+- **External verification is ground truth.** Tests, build, types — not reasoning.
+- **Escalate, don't auto-accept.** Stalled loops go to the user.
 
 ## File Structure
 
 ```
 deliver/
-├── plugin.json                          # Plugin manifest (v5.0.0)
+├── plugin.json                          # Plugin manifest (v6.0.0)
 ├── README.md                            # This file
 ├── AGENTS.md                            # Lean TOC and key rules
-├── OPERATING-RULES.md                   # Loop rules, stop conditions, protected paths
+├── OPERATING-RULES.md                   # Stop conditions, loop routing, handoff schema
 ├── hooks.json                           # Hook configuration
 ├── agents/
 │   ├── explorer.agent.md               # Discovery — files, constraints, risks, unknowns
-│   ├── planner.agent.md                # Proposer — plan + implement, contract-first
-│   ├── plan-critic.agent.md            # Critic — adversarial, evidence-based
-│   ├── implementer.agent.md            # Implementation sub-step of propose
-│   └── tester.agent.md                 # Verifier — external checks, ground truth
+│   ├── planner.agent.md                # Strategy + phased execution planning
+│   ├── critic.agent.md                 # Adversarial plan review
+│   ├── implementer.agent.md            # Phase-by-phase implementation
+│   └── tester.agent.md                 # External checks + write tests for gaps
 ├── skills/
-│   ├── deliver/SKILL.md                 # GAN loop orchestrator
-│   ├── explore-task/SKILL.md            # Structured exploration
-│   ├── plan-task/SKILL.md               # Strategy and execution planning
-│   ├── critique-plan/SKILL.md           # Adversarial critique
-│   ├── implement-task/SKILL.md          # Phase-by-phase implementation
-│   ├── test-task/SKILL.md               # External verification
-│   └── build-execution-graph/SKILL.md   # Dependency DAG validation
+│   ├── deliver/
+│   │   ├── SKILL.md                    # Loop orchestrator
+│   │   └── reference/
+│   │       └── plans-and-exec-plans.md # Execution plan standard
+│   ├── explore-task/SKILL.md           # Structured exploration
+│   ├── plan-task/SKILL.md              # Strategy and execution planning
+│   ├── critique-plan/SKILL.md          # Adversarial critique
+│   ├── implement-task/SKILL.md         # Phase-by-phase implementation
+│   ├── test-task/SKILL.md              # External verification
+│   └── build-execution-graph/SKILL.md  # Dependency DAG validation
 ├── scripts/
-│   ├── score_plan.py                    # Plan quality scoring
-│   └── render_dag.py                    # Execution graph rendering
+│   ├── score_plan.py                   # Plan quality scoring
+│   └── render_dag.py                   # Execution graph rendering
 └── knowledge/
-    └── planning-patterns.md             # Proven patterns and anti-patterns
-```
-
-## Installation
-
-### From local path
-```bash
-copilot plugin install ./plugins/deliver
-```
-
-### From GitHub
-```bash
-copilot plugin install OWNER/REPO:plugins/deliver
-```
-
-### Verify
-```bash
-copilot plugin list
-```
-
-In a session:
-```
-/plugin list
-/skills list    # check 7 skills loaded
+    └── planning-patterns.md            # Proven patterns and anti-patterns
 ```
 
 ## Usage
 
 ### Start a delivery pipeline
-
-The `deliver` skill is the main entry point and orchestrator:
 
 ```
 Use the deliver skill to add pagination to the /api/users endpoint
@@ -97,7 +70,7 @@ Use the deliver skill to add pagination to the /api/users endpoint
 
 ### Use individual skills
 
-Skills can be used independently for focused work:
+Skills work standalone for focused work:
 
 ```
 Use the explore-task skill to understand the payments module
@@ -108,52 +81,23 @@ Use the critique-plan skill to evaluate this plan
 ### Utility scripts
 
 ```bash
-python scripts/score_plan.py plan.yaml        # Score plan quality
-python scripts/render_dag.py plan.yaml         # ASCII DAG
-python scripts/render_dag.py plan.yaml -f mermaid  # Mermaid diagram
+python scripts/score_plan.py plan.yaml
+python scripts/render_dag.py plan.yaml -f mermaid
 ```
 
-## GAN Loop
-
-The core delivery mechanism is an adversarial loop:
-
-1. **Frame** — convert task to contract (goals, constraints, testable success criteria)
-2. **Explore** — map the system (once; re-explore only on explicit signal)
-3. **Loop** (max 3 iterations):
-   - **Propose** — plan + implement (addressing all prior feedback)
-   - **Critic** — adversarial review (find flaws, don't confirm)
-   - **Verify** — external checks (build, test, typecheck, lint)
-   - **Decide** — accept / iterate / escalate
-
-### Stop Conditions
-
-- **Accept**: All success criteria verified + no blocking critic issues + confidence ≥ medium
-- **Escalate**: Max 3 iterations, or no improvement after 2, or unresolvable issue
-
-### Example Workflow
+## Example Workflow
 
 **Task**: "Add rate limiting to the public API endpoints"
 
-1. **Frame** — Goals: rate limiting on public endpoints. Constraints: no breaking changes, use existing Redis. Criteria: requests above limit return 429, existing tests pass, new tests cover limit enforcement.
+1. **Frame** — Goals: rate limiting on public endpoints. Constraints: no breaking changes, use existing Redis. Criteria: above-limit requests return 429, existing tests pass, new tests cover enforcement.
 
-2. **Explore** — Finds 12 public endpoints, existing middleware pattern, Redis in stack, no existing rate limiting.
+2. **Explore** — 12 public endpoints, existing middleware pattern, Redis available, no existing rate limiting.
 
 3. **Loop iteration 1**:
-   - **Propose** — Plans Redis sliding window middleware, implements it across 12 routes, adds tests
-   - **Critic** — Finds: middleware doesn't handle Redis connection failure gracefully (blocking), no configuration for per-route limits (high)
-   - **Verify** — Build passes, 2 test failures (Redis timeout not handled), confidence 70%
-   - **Decide** — Blocking issues remain → iterate
-
-4. **Loop iteration 2**:
-   - **Propose** — Adds Redis failure fallback (allow traffic), per-route config, fixes tests
-   - **Critic** — Accepts. Notes: consider adding monitoring (non-blocking)
+   - **Plan** — Redis sliding window middleware, apply to 12 routes, add tests
+   - **Critic** — Finds: no Redis failure handling (blocking), no per-route config (high)
+   - **Plan revised** (addresses critic) — Adds fallback-allow on Redis failure, per-route config
+   - **Critic** — Accepts
+   - **Implement** — Middleware + config + tests
    - **Verify** — All tests pass, all criteria met, confidence 95%
    - **Decide** — **Accept**
-
-## Key Design Decisions
-
-1. **GAN-style adversarial loop**: Proposer vs critic, grounded by external verification. No self-trust.
-2. **Contract-first**: Every task has explicit goals, constraints, and testable success criteria.
-3. **Simple over complex**: Given two solutions that meet the contract, choose the simpler one.
-4. **Escalate, don't auto-accept**: Stalled loops go to the user, not to "best effort" delivery.
-5. **Domain-agnostic**: Works for software delivery, migrations, research tasks, operational work.

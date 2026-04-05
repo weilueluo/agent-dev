@@ -1,43 +1,41 @@
 ---
 name: explore-task
 description: "Structured repository exploration. Use before planning to map relevant files, surface constraints, identify unknowns and risks."
-version: 4.0.0
+version: 5.0.0
 ---
 
 # explore-task
 
-Explore a repository to build context for informed planning.
+Explore a repository to build context for planning. Used as the Explore step in the deliver loop, or standalone.
 
 ## When to Use
 
-- At the start of the GAN loop (Step 2 — Explore)
-- When the critic or verifier signals an exploration gap (targeted re-explore)
+- At the start of the deliver loop (Step 2)
+- When critic signals `re-explore` for a specific gap (targeted re-explore)
+- Standalone: when asked to explore/understand a codebase
 
 ## Inputs
 
-- **contract**: Goals, constraints, and testable success criteria for the task
-- **task_description**: What needs to be done
-- **re_explore_guidance** (optional): Specific gaps to investigate if re-exploring. When present, do a targeted investigation — do not re-run full exploration.
+- **contract**: goals, constraints, testable success criteria
+- **task_description**: what needs to be done
+- **re_explore_guidance** (optional): specific gaps to investigate. When present, do targeted investigation only.
 
 ## Process
 
-Work through these areas:
+1. Frame the task from the contract. What does "done" look like?
+2. Orient — structure, tech stack, conventions, AGENTS.md.
+3. Map relevant files — role and risk for each.
+4. Surface constraints — explicit (contract, CI, docs) and implicit (conventions, patterns).
+5. Catalog known facts for planning.
+6. Identify unknowns — classify as blocking, important, or minor.
+7. Flag risk hotspots.
+8. Note investigation gaps.
 
-1. Frame the task — restate the objective from the contract. What does "done" look like in terms of the success criteria?
-2. Orient — project structure, tech stack, conventions
-3. Look for AGENTS.md and architecture docs — note if missing or stale (Build for AI). Map layer dependencies and flag violations (Clear Boundary).
-4. Map relevant files — what matters and how risky is each?
-5. Surface constraints — explicit (from contract, CI, docs) and implicit (conventions, patterns)
-6. Catalog known facts needed for planning
-7. Identify unknowns — classify as blocking, important, or minor
-8. Flag risk hotspots
-9. Note investigation gaps
-
-For targeted re-exploration: skip steps 1-3, focus directly on the specific gap identified by the critic or verifier.
+For targeted re-exploration: skip 1-3, focus on the specific gap. Return only new findings.
 
 ## Output
 
-An exploration report covering: objective, task type, relevant files with roles and risk, constraints, known facts, unknowns (classified by severity), risk hotspots, investigation gaps.
+Exploration report: objective, task type, relevant files with roles and risk, constraints, known facts, unknowns (classified), risk hotspots, gaps.
 
 ## Escalation
 
