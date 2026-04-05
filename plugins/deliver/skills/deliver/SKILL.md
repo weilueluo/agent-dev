@@ -93,14 +93,13 @@ Delegate to **verifier agent**. Runs external checks (build, typecheck, lint, te
 
 ## Context Management
 
-On iteration 2+, summarize previous iteration artifacts into a compact digest before passing them forward. Current iteration artifacts remain in full. Previous full artifacts may be dropped from active context.
+On iteration 2+, compress previous iteration artifacts before starting the new iteration. See `OPERATING-RULES.md` for full retention priority and summarization rules.
 
-Target token budgets per artifact:
-- `exploration_report`: ≤ 2000 tokens
-- `plan`: ≤ 3000 tokens
-- `critic_report`: ≤ 1000 tokens
-- `implementation_report`: ≤ 1500 tokens
-- `verify_report`: ≤ 1000 tokens
+Key principles:
+- **Threshold-based**: compress when accumulated artifacts exceed 50% of available context
+- **Recency-based**: current iteration in full, previous iterations summarized
+- **Priority-based**: `contract` and current `plan` are never compressed; old `implementation_report` is dropped first
+- **Never alter identifiers**: commit hashes, file paths, UUIDs must survive compression intact
 
 ## Observability
 

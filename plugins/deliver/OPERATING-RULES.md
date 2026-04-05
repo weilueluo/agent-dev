@@ -31,19 +31,36 @@ Each step produces a named artifact consumed by downstream steps:
 - `verify_report` — criteria status, failures classified, confidence, blocking count (Verify → decide, planner on next iter)
 - `pipeline_trace` — all events with timing, all artifacts or summaries, decisions (Pipeline end → post-mortem, learning log)
 
-## Context Budget
+## Context Management
 
-Target token budgets per artifact (to prevent context rot on multi-iteration runs):
+Prevent context rot on multi-iteration runs using threshold-based clearing and recency-based retention — not fixed token budgets.
 
-| Artifact | Budget | Notes |
-|----------|--------|-------|
-| exploration_report | ≤ 2000 tokens | Files, constraints, unknowns |
-| plan | ≤ 3000 tokens | Strategy, phases, criteria |
-| critic_report | ≤ 1000 tokens | Issues, strengths, signal |
-| implementation_report | ≤ 1500 tokens | Files changed, deviations |
-| verify_report | ≤ 1000 tokens | Criteria status, confidence |
+### Retention priority (highest to lowest)
 
-On iteration 2+: summarize previous iteration artifacts into compact digests. Current iteration artifacts remain in full. Previous full artifacts may be dropped from active context.
+1. `contract` — always in full (small, never changes)
+2. Current iteration artifacts — always in full
+3. Previous iteration `plan` — keep (strategy context persists)
+4. Previous iteration `critic_report` and `verify_report` — summarize to blocking issues + signal only
+5. Previous iteration `exploration_report` — summarize to file list + key constraints
+6. Previous iteration `implementation_report` — drop (superseded by current code state)
+
+### Compression trigger
+
+Compress when accumulated artifacts exceed **50% of available context**. The orchestrator estimates artifact sizes and triggers summarization before starting a new iteration.
+
+### Summarization rules
+
+On iteration 2+:
+- Replace previous iteration artifacts with compact digests following the retention priority above
+- Current iteration artifacts remain in full
+- The `contract` and current `plan` are never compressed
+- Preserve: blocking issues, decisions made, files changed, verification outcomes
+- Drop: tool output details, exploration prose, implementation step-by-step narrative
+- Never alter identifiers (commit hashes, file paths, PR numbers, UUIDs)
+
+### Why not fixed token budgets
+
+Task complexity varies — a 3-file bug fix needs a 500-token exploration report, a 50-file migration needs 4000 tokens. Fixed per-artifact limits either over-constrain complex tasks or waste budget on simple ones. Use proportional thresholds instead.
 
 ## Iteration 2+ Requirements
 
