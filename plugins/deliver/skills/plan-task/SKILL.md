@@ -1,7 +1,7 @@
 ---
 name: plan-task
 description: "Create an execution plan with strategy comparison, phased implementation, dependency graph, and acceptance criteria."
-version: 5.0.0
+version: 6.0.0
 ---
 
 # plan-task

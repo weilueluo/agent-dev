@@ -1,10 +1,16 @@
 # Deliver — Operating Rules
 
+## Iteration Definition
+
+An **iteration** is one complete pass through Plan → Critic → Implement → Verify → Decide. Critic's `revise-plan` signal loops within the current iteration and does **not** increment the iteration counter. Cap revise-plan sub-loops at 2 per iteration. If the plan cannot be accepted after 2 revisions within one iteration, escalate.
+
 ## Stop Conditions
 
 - **Accept**: all success criteria pass verification AND no blocking critic issues AND confidence ≥ medium.
-- **Iterate**: blocking issues remain AND iteration < 3 AND improvement observed (fewer blocking failures + fewer blocking critic issues than previous iteration).
-- **Escalate**: max 3 iterations reached OR no improvement after 2 iterations OR unresolvable issue detected.
+- **Iterate**: blocking issues remain AND iteration < max AND improvement observed (fewer blocking failures + fewer blocking critic issues than previous iteration).
+- **Escalate**: max iterations reached OR no improvement after 2 iterations OR unresolvable issue detected.
+
+Max iterations: 2 for Standard tasks, 3 for Complex tasks (per complexity routing).
 
 ## Loop Routing
 
@@ -23,6 +29,21 @@ Each step produces a named artifact consumed by downstream steps:
 - `critic_report` — issues with severity + evidence, strengths, signal (Critic → decide, planner on next iter)
 - `implementation_report` — files changed, deviations, verification focus (Implement → verifier)
 - `verify_report` — criteria status, failures classified, confidence, blocking count (Verify → decide, planner on next iter)
+- `pipeline_trace` — all events with timing, all artifacts or summaries, decisions (Pipeline end → post-mortem, learning log)
+
+## Context Budget
+
+Target token budgets per artifact (to prevent context rot on multi-iteration runs):
+
+| Artifact | Budget | Notes |
+|----------|--------|-------|
+| exploration_report | ≤ 2000 tokens | Files, constraints, unknowns |
+| plan | ≤ 3000 tokens | Strategy, phases, criteria |
+| critic_report | ≤ 1000 tokens | Issues, strengths, signal |
+| implementation_report | ≤ 1500 tokens | Files changed, deviations |
+| verify_report | ≤ 1000 tokens | Criteria status, confidence |
+
+On iteration 2+: summarize previous iteration artifacts into compact digests. Current iteration artifacts remain in full. Previous full artifacts may be dropped from active context.
 
 ## Iteration 2+ Requirements
 

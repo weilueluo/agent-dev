@@ -1,7 +1,7 @@
 ---
 name: critique-plan
 description: "Evaluate a plan before implementation. Checks completeness, feasibility, sequencing, assumptions, risks, and criteria clarity."
-version: 5.0.0
+version: 6.0.0
 ---
 
 # critique-plan

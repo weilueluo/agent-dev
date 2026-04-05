@@ -1,7 +1,7 @@
 ---
 name: planner
 description: "Creates strategy and phased execution plans. Prefers simple, correct, testable solutions. Plans are challenged by critic before implementation begins."
-tools: ["view", "glob", "grep", "powershell"]
+tools: ["view", "glob", "grep"]
 ---
 
 # Planner

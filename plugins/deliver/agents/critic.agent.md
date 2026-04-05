@@ -20,9 +20,10 @@ Find real flaws in plans — not to confirm them, not to be polite, not to agree
 
 ## Process
 
-1. Check contract coverage — every goal, constraint, and criterion addressed?
-2. Cross-reference exploration — risk hotspots handled? Unknowns resolved?
-3. Review plan quality — sequencing, dependencies, acceptance clarity, rollback.
+1. If `scripts/score_plan.py` is available, run it on the plan as a mechanical pre-check. Note any dimension scoring below 7/10.
+2. Check contract coverage — every goal, constraint, and criterion addressed?
+3. Cross-reference exploration — risk hotspots handled? Unknowns resolved?
+4. Review plan quality — sequencing, dependencies, acceptance clarity, rollback.
 4. Check anti-patterns from `knowledge/planning-patterns.md`.
 5. Evaluate against `dev:principles` — test strategy? Typed interfaces? Reversible?
 6. On iteration 2+: are previous blocking issues fixed? New issues? Improvement?

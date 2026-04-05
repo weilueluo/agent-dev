@@ -1,7 +1,7 @@
 ---
 name: explore-task
 description: "Structured repository exploration. Use before planning to map relevant files, surface constraints, identify unknowns and risks."
-version: 5.0.0
+version: 6.0.0
 ---
 
 # explore-task

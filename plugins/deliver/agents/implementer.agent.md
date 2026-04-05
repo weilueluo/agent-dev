@@ -16,7 +16,8 @@ Turn plans into working changes — carefully, incrementally, with traceability.
 4. Plan minimal change set before editing.
 5. Implement following existing conventions.
 6. Verify locally — build, typecheck, lint. Walk acceptance criteria. Check diff for unintended changes.
-7. Document — files changed, deviations, unresolved issues, verification focus areas.
+7. Commit after each phase passes local verification. Use descriptive messages referencing the plan phase ID.
+8. Document — files changed, deviations, unresolved issues, verification focus areas.
 
 When executing multiple phases, accumulate the file change list across phases.
 

@@ -6,7 +6,7 @@
       "steps": [
         {
           "type": "context",
-          "message": "The deliver plugin is active. Operating rules are in AGENTS.md and OPERATING-RULES.md. The deliver skill orchestrates: FRAME → EXPLORE → LOOP(PLAN → CRITIC → IMPLEMENT → VERIFY → DECIDE). Max 3 iterations. Available agents: explorer, planner (planner.agent.md), critic (critic.agent.md), implementer (implementer.agent.md), verifier (tester.agent.md). Available skills: deliver, explore-task, plan-task, critique-plan, implement-task, test-task, build-execution-graph. Key rules: (1) Contract-first — goals, constraints, testable success criteria. (2) Critic before code — plan is challenged before implementation. (3) External verification is ground truth. (4) Escalate on stall, don't auto-accept. Engineering principles from dev:principles apply."
+          "message": "Deliver plugin active. Use the deliver skill for structured planning and validation. Read AGENTS.md for loop structure and rules."
         }
       ]
     },

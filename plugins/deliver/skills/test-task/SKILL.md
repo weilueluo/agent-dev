@@ -1,7 +1,7 @@
 ---
 name: test-task
 description: "Validate implementation against acceptance criteria. Classifies failures, estimates confidence, reports residual risk."
-version: 5.0.0
+version: 6.0.0
 ---
 
 # test-task

@@ -41,7 +41,7 @@ deliver/
 │   ├── planner.agent.md                # Strategy + phased execution planning
 │   ├── critic.agent.md                 # Adversarial plan review
 │   ├── implementer.agent.md            # Phase-by-phase implementation
-│   └── tester.agent.md                 # External checks + write tests for gaps
+│   └── verifier.agent.md                 # External checks + write tests for gaps
 ├── skills/
 │   ├── deliver/
 │   │   ├── SKILL.md                    # Loop orchestrator
@@ -57,7 +57,9 @@ deliver/
 │   ├── score_plan.py                   # Plan quality scoring
 │   └── render_dag.py                   # Execution graph rendering
 └── knowledge/
-    └── planning-patterns.md            # Proven patterns and anti-patterns
+    ├── planning-patterns.md            # Proven patterns, anti-patterns, and learning log
+    ├── eval-guide.md                   # Pipeline evaluation methodology
+    └── observability.md                # Structured logging and trace format
 ```
 
 ## Usage

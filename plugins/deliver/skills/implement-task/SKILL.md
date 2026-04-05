@@ -1,7 +1,7 @@
 ---
 name: implement-task
 description: "Execute plan phases incrementally with self-checks, deviation tracking, and clean handoff to testing."
-version: 5.0.0
+version: 6.0.0
 ---
 
 # implement-task
@@ -30,6 +30,7 @@ Turn a plan into working changes. Used as the implementation step within the del
 4. Plan minimal change set before editing.
 5. Implement incrementally following existing conventions.
 6. Verify locally — build, typecheck, lint. Walk acceptance criteria. Check diff for unintended changes.
+7. Commit after each phase passes local verification. Descriptive messages referencing plan phase ID.
 7. Document — files changed, deviations, unresolved issues, verification focus areas.
 
 ## Output

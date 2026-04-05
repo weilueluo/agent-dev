@@ -199,14 +199,15 @@ def score_plan(plan):
     data = plan.get("planner_handoff", plan)
     dims = {
         "completeness": score_completeness(data),
+        "feasibility": score_feasibility(data),
         "sequencing": score_sequencing(data),
         "dependency_clarity": score_dependency_clarity(data),
         "acceptance_clarity": score_acceptance_clarity(data),
         "rollback_readiness": score_rollback_readiness(data),
         "risk_coverage": score_risk(data),
     }
-    # Equal weights across 6 dimensions
-    weights = {k: 100 / 6 for k in dims}
+    # Equal weights across 7 dimensions
+    weights = {k: 100 / 7 for k in dims}
     overall = sum(dims[d][0] * weights[d] / 10 for d in weights)
     return {
         "dimensions": {k: {"score": v[0], "issues": v[1]} for k, v in dims.items()},

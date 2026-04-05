@@ -56,11 +56,16 @@ Reference these during the deliver loop's plan and critic steps.
 
 ## Learning Log
 
-Record new patterns as the loop discovers them:
+The deliver orchestrator appends new entries here after each successful delivery. Record what worked, what the critic caught, what the verifier found, and any new anti-pattern encountered.
+
+Format:
 
 ```
-### [Context] Pattern Name
+### [YYYY-MM-DD] Pattern Name
+**Context**: What task / what domain
 **Issue**: What happened
 **Lesson**: What was learned
 **Recommendation**: How to handle it next time
 ```
+
+<!-- Entries below this line are auto-appended by the deliver pipeline -->

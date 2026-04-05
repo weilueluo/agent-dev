@@ -39,4 +39,7 @@ FRAME → EXPLORE → LOOP(PLAN → CRITIC → IMPLEMENT → VERIFY → DECIDE)
 
 ## References
 
-- `OPERATING-RULES.md` — Stop conditions, loop routing, protected paths, versioning
+- `OPERATING-RULES.md` — Stop conditions, loop routing, handoff schema, context budget, versioning
+- `knowledge/planning-patterns.md` — Strategy and sequencing patterns, learning log
+- `knowledge/eval-guide.md` — Pipeline evaluation methodology
+- `knowledge/observability.md` — Structured logging and trace format
