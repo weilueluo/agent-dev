@@ -1,7 +1,7 @@
 {
   "name": "deliver",
-  "description": "Production multi-stage delivery pipeline. The deliver skill orchestrates exploration, planning, critique, implementation, testing, and review — with optional delegation to specialist agents, quality gates, and explicit correction paths.",
-  "version": "3.1.0",
+  "description": "GAN-style adversarial delivery pipeline. The deliver skill orchestrates a loop: proposer creates plans and implements them, critic adversarially challenges every proposal, verifier provides ground truth through external checks. Iterates until verification passes or stop conditions are met.",
+  "version": "5.0.0",
   "author": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"

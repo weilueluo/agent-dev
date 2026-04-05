@@ -1,6 +1,6 @@
 # Planning Patterns
 
-Reference these during planning to avoid reinventing solutions to known problems.
+Reference these during the GAN loop's propose and critic steps.
 
 ## Strategy Patterns
 
@@ -34,7 +34,7 @@ Reference these during planning to avoid reinventing solutions to known problems
 
 **Missing Non-Goals** — No scope boundaries → scope creep. Fix: every plan needs at least one non-goal.
 
-**Vague Criteria** — "It should work correctly." Fix: criteria must be specific enough for two people to agree on pass/fail.
+**Vague Criteria** — "It should work correctly." Fix: criteria must be specific enough for two people to agree on pass/fail. Every criterion in the contract must be externally verifiable.
 
 **Ignored Rollback** — No rollback plan. Fix: every plan has rollback notes.
 
@@ -42,9 +42,21 @@ Reference these during planning to avoid reinventing solutions to known problems
 
 **Silent Deviation** — Changing the approach without documenting why. Fix: all deviations documented. Blocking ones halt implementation.
 
+**Self-Trust** — Accepting own output without adversarial review. Fix: every proposal goes through the critic. Verify claims with external checks.
+
+**Agreement Bias** — Critic agrees with proposer without evidence. Fix: critic must cite evidence for acceptance. Silence is not acceptance.
+
+## GAN Loop Patterns
+
+**Convergence** — Each iteration should show measurable improvement: fewer blocking failures, fewer high-severity issues. Track these counts. If counts don't improve after 2 iterations, escalate.
+
+**Distinct Failure Routing** — Plan flaws and implementation flaws need different responses. Critic signals `revise-plan` vs `revise-implementation` to route correctly. Mixing them wastes iterations.
+
+**Contract Anchoring** — All steps reference the contract. When the proposer drifts, the critic catches it by checking against goals, constraints, and success criteria. When the critic drifts, the verifier catches it with external checks.
+
 ## Learning Log
 
-Record new patterns as the pipeline discovers them:
+Record new patterns as the loop discovers them:
 
 ```
 ### [Context] Pattern Name

@@ -1,76 +1,65 @@
 # Agent Pipeline
 
-A production multi-stage delivery pipeline plugin for GitHub Copilot CLI. The deliver skill orchestrates the full pipeline — delegating each phase to a specialist agent in sequence, with quality gates and explicit correction paths.
+A GAN-style adversarial delivery pipeline plugin for GitHub Copilot CLI. The proposer creates plans and implements them; the critic adversarially challenges every proposal; the verifier provides ground truth through external checks. The loop iterates until verification passes or stop conditions are met.
 
 ## Architecture
 
 ```
 deliver skill (orchestrator)
-  ├── Phase 1: Exploration     → explorer agent
-  ├── Phase 2: Planning        → planner agent
-  ├── Phase 3: Plan Critique   → plan-critic agent  (deep/high-risk only)
-  ├── Phase 4: Implementation  → implementer agent
-  ├── Phase 5: Testing         → tester agent       (standard/deep/high-risk)
-  └── Phase 6: Review          → reviewer agent
+  ├── Step 1: Frame         → contract (goals, constraints, testable criteria)
+  ├── Step 2: Explore       → explorer agent (once; re-explore on signal)
+  └── Step 3: GAN Loop (max 3 iterations)
+      ├── 3a: Propose       → proposer agent (plan then implement)
+      ├── 3b: Critic        → critic agent (adversarial)
+      ├── 3c: Verify        → verifier agent (external checks)
+      └── 3d: Decide        → orchestrator (accept / iterate / escalate)
 ```
-
-The deliver skill is the pipeline orchestrator. It manages the workflow directly — classifying tasks, choosing modes, running phases in order, and delegating each phase to the corresponding specialist agent. The orchestrator agent is not used by the pipeline; it exists only as a legacy standalone alternative.
 
 ### Why This Architecture
 
-**Linear orchestration with explicit delegation**:
-- The deliver skill is the single orchestrator — no nested agent chains
-- Each phase is delegated to a dedicated specialist agent
-- Clear phase markers (Phase 1-6) make the pipeline easy to follow
+**GAN-style adversarial loop**:
+- The proposer and critic are adversarial — the critic's job is to find real flaws, not confirm
+- External verification (tests, build, types) provides ground truth that neither proposer nor critic can argue with
+- The loop naturally converges: each iteration must address blocking issues from the previous
 
-**Specialist agents as dedicated phase handlers**:
-- 6 specialist agents handle focused roles (exploration, planning, critique, implementation, testing, review)
-- 9 skills provide reusable execution logic
-- Each agent is purpose-built for its phase
+**Contract-first**:
+- Every task starts as goals + constraints + testable success criteria
+- All steps reference the contract — no scope drift
+- Success criteria must be externally verifiable
 
-**Adaptive planning** with dynamic perspectives:
-- The planner generates perspectives fresh per task — no hardcoded specialist agents needed
-- A database migration gets "Data Integrity" and "Rollback Safety" perspectives
-- A UI feature gets "User Experience" and "Accessibility" perspectives
-
-**Explicit correction paths**:
-- **Revise** = implementation issue, strategy still valid → goes back to implementation
-- **Replan** = strategy is flawed → goes back to planning with failure analysis
-- These are fundamentally different recovery paths. Mixing them wastes cycles.
+**Simple, correct, testable**:
+- Prefer the simpler solution when two meet the contract
+- Do not trust reasoning without external verification
+- Stop conditions prevent infinite loops and force escalation
 
 ## File Structure
 
 ```
 deliver/
-├── plugin.json                          # Plugin manifest
+├── plugin.json                          # Plugin manifest (v5.0.0)
 ├── README.md                            # This file
-├── CLAUDE.md                            # Persistent operating rules
+├── AGENTS.md                            # Lean TOC and key rules
+├── OPERATING-RULES.md                   # Loop rules, stop conditions, protected paths
 ├── hooks.json                           # Hook configuration
 ├── agents/
-│   ├── orchestrator.agent.md            # Legacy standalone coordinator (not used by deliver pipeline)
 │   ├── explorer.agent.md               # Discovery — files, constraints, risks, unknowns
-│   ├── planner.agent.md                # Strategy — perspectives, strategies, phased plan
-│   ├── plan-critic.agent.md            # Validation — scoring, accept/revise/re-explore
-│   ├── implementer.agent.md            # Execution — incremental changes, deviation tracking
-│   ├── tester.agent.md                 # Verification — checks, coverage, confidence, risk
-│   └── reviewer.agent.md              # Judgment — approve / approve-with-follow-ups / revise / replan
+│   ├── planner.agent.md                # Proposer — plan + implement, contract-first
+│   ├── plan-critic.agent.md            # Critic — adversarial, evidence-based
+│   ├── implementer.agent.md            # Implementation sub-step of propose
+│   └── tester.agent.md                 # Verifier — external checks, ground truth
 ├── skills/
-│   ├── deliver/SKILL.md                 # Primary entry point — orchestrates the full pipeline
-│   ├── explore-task/SKILL.md            # Structured repository exploration
-│   ├── plan-task/SKILL.md               # Strategy generation and execution planning
-│   ├── build-execution-graph/SKILL.md   # Dependency DAG validation and visualization
-│   ├── critique-plan/SKILL.md           # Plan quality assessment
-│   ├── implement-task/SKILL.md          # Phase-by-phase implementation with self-check
-│   ├── test-task/SKILL.md               # Acceptance criteria validation and confidence estimation
-│   ├── review-task/SKILL.md             # Quality review and explicit disposition
-│   └── replan-task/SKILL.md             # Strategy revision after failure
+│   ├── deliver/SKILL.md                 # GAN loop orchestrator
+│   ├── explore-task/SKILL.md            # Structured exploration
+│   ├── plan-task/SKILL.md               # Strategy and execution planning
+│   ├── critique-plan/SKILL.md           # Adversarial critique
+│   ├── implement-task/SKILL.md          # Phase-by-phase implementation
+│   ├── test-task/SKILL.md               # External verification
+│   └── build-execution-graph/SKILL.md   # Dependency DAG validation
 ├── scripts/
 │   ├── score_plan.py                    # Plan quality scoring
-│   └── render_dag.py                    # Execution graph rendering (ASCII or Mermaid)
+│   └── render_dag.py                    # Execution graph rendering
 └── knowledge/
-    ├── handoff-schemas.md               # YAML schemas for stage outputs
-    ├── planning-patterns.md             # Proven patterns and anti-patterns
-    └── lessons-learned.md               # Lessons from past pipeline runs
+    └── planning-patterns.md             # Proven patterns and anti-patterns
 ```
 
 ## Installation
@@ -93,7 +82,7 @@ copilot plugin list
 In a session:
 ```
 /plugin list
-/skills list    # check 9 skills loaded
+/skills list    # check 7 skills loaded
 ```
 
 ## Usage
@@ -106,11 +95,6 @@ The `deliver` skill is the main entry point and orchestrator:
 Use the deliver skill to add pagination to the /api/users endpoint
 ```
 
-Or specify a mode:
-```
-Use the deliver skill in deep mode to refactor the authentication module
-```
-
 ### Use individual skills
 
 Skills can be used independently for focused work:
@@ -121,16 +105,6 @@ Use the plan-task skill to plan a database migration
 Use the critique-plan skill to evaluate this plan
 ```
 
-### Use agents directly
-
-Agents can be invoked directly when you want focused specialist work:
-
-```
-@explorer map the codebase for the billing module
-@planner create a strategy for migrating from REST to GraphQL
-@reviewer review these changes
-```
-
 ### Utility scripts
 
 ```bash
@@ -139,68 +113,47 @@ python scripts/render_dag.py plan.yaml         # ASCII DAG
 python scripts/render_dag.py plan.yaml -f mermaid  # Mermaid diagram
 ```
 
-## Pipeline Modes
+## GAN Loop
 
-| Mode | When | Stages |
-|------|------|--------|
-| **quick** | Single-file, low risk, obvious path | explore → plan → implement → review |
-| **standard** | Normal bug/feature, moderate complexity | explore → plan → implement → test → review |
-| **deep** | Multiple strategies, significant refactor, cross-cutting | explore → plan → critique → implement → test → review |
-| **high-risk** | Migration, auth/security, infra, wide blast radius | explore → plan → critique → implement → test → review |
+The core delivery mechanism is an adversarial loop:
 
-Quick mode skips plan critique and testing. Standard mode skips plan critique. Deep and high-risk run all phases — they differ in the depth expected within each phase. The deliver skill auto-selects mode based on task analysis. When in doubt, it chooses the more cautious mode.
+1. **Frame** — convert task to contract (goals, constraints, testable success criteria)
+2. **Explore** — map the system (once; re-explore only on explicit signal)
+3. **Loop** (max 3 iterations):
+   - **Propose** — plan + implement (addressing all prior feedback)
+   - **Critic** — adversarial review (find flaws, don't confirm)
+   - **Verify** — external checks (build, test, typecheck, lint)
+   - **Decide** — accept / iterate / escalate
 
-## Revise vs Replan
+### Stop Conditions
 
-| | Revise | Replan |
-|---|--------|--------|
-| **What's wrong** | Implementation has bugs or issues | Strategy itself is flawed |
-| **Strategy** | Still valid | Needs fundamental change |
-| **Goes back to** | Implementation phase | Planning phase |
-| **Example** | "The endpoint works but returns wrong status code" | "Cursor pagination won't work because the DB doesn't support it" |
-| **Max cycles** | 2 | 1 |
+- **Accept**: All success criteria verified + no blocking critic issues + confidence ≥ medium
+- **Escalate**: Max 3 iterations, or no improvement after 2, or unresolvable issue
 
-## Example Workflow
+### Example Workflow
 
 **Task**: "Add rate limiting to the public API endpoints"
 
-1. **Deliver skill** classifies as `standard` mode (normal feature, moderate complexity)
+1. **Frame** — Goals: rate limiting on public endpoints. Constraints: no breaking changes, use existing Redis. Criteria: requests above limit return 429, existing tests pass, new tests cover limit enforcement.
 
-2. **Phase 1 — Exploration** (→ explorer agent) discovers:
-   - 12 public endpoints in `src/routes/public/`
-   - Existing middleware pattern in `src/middleware/`
-   - Redis already in the stack (potential rate limit store)
-   - No existing rate limiting anywhere
-   - Risk: middleware ordering affects all endpoints
+2. **Explore** — Finds 12 public endpoints, existing middleware pattern, Redis in stack, no existing rate limiting.
 
-3. **Phase 2 — Planning** (→ planner agent) produces:
-   - Considers Redis-backed sliding window vs in-memory token bucket
-   - Recommends Redis sliding window (aligns with existing infra)
-   - Plans 3 phases: middleware → route integration → tests
+3. **Loop iteration 1**:
+   - **Propose** — Plans Redis sliding window middleware, implements it across 12 routes, adds tests
+   - **Critic** — Finds: middleware doesn't handle Redis connection failure gracefully (blocking), no configuration for per-route limits (high)
+   - **Verify** — Build passes, 2 test failures (Redis timeout not handled), confidence 70%
+   - **Decide** — Blocking issues remain → iterate
 
-4. **Phase 4 — Implementation** (→ implementer agent) executes:
-   - Phase 1: Creates rate limit middleware with Redis backend
-   - Phase 2: Integrates with all 12 public routes
-   - Phase 3: Adds configuration and documentation
-
-5. **Phase 5 — Testing** (→ tester agent) validates:
-   - Runs existing test suite (all pass)
-   - Adds rate limit tests: happy path, limit exceeded, Redis unavailable
-   - Reports 88% confidence, one gap: no load testing
-
-6. **Phase 6 — Review** (→ reviewer agent) assesses:
-   - Correctness: 8/10, Design: 9/10, Maintainability: 8/10
-   - Decision: **approve-with-follow-ups**
-   - Follow-up: "Add monitoring dashboard for rate limit metrics"
+4. **Loop iteration 2**:
+   - **Propose** — Adds Redis failure fallback (allow traffic), per-route config, fixes tests
+   - **Critic** — Accepts. Notes: consider adding monitoring (non-blocking)
+   - **Verify** — All tests pass, all criteria met, confidence 95%
+   - **Decide** — **Accept**
 
 ## Key Design Decisions
 
-1. **Deliver is the orchestrator**: The deliver skill manages the pipeline directly, delegating each phase to a specialist agent. No recursive agent spawning. The orchestrator agent is not used by the pipeline.
-
-2. **Explicit phase delegation**: Each phase is delegated to a named specialist agent (explorer → planner → plan-critic → implementer → tester → reviewer). The deliver skill handles sequencing and feedback routing.
-
-3. **Domain-agnostic**: Works for software delivery, migrations, research tasks, operational work — not just simple code changes.
-
-4. **Adaptive planning**: The planner generates perspectives fresh per task. No hardcoded "security planner" or "performance planner" agents needed.
-
-5. **Explicit correction**: Revise and replan are separate paths with different destinations and cycle limits. This prevents infinite loops and ensures the right problem gets fixed.
+1. **GAN-style adversarial loop**: Proposer vs critic, grounded by external verification. No self-trust.
+2. **Contract-first**: Every task has explicit goals, constraints, and testable success criteria.
+3. **Simple over complex**: Given two solutions that meet the contract, choose the simpler one.
+4. **Escalate, don't auto-accept**: Stalled loops go to the user, not to "best effort" delivery.
+5. **Domain-agnostic**: Works for software delivery, migrations, research tasks, operational work.

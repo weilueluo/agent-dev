@@ -1,213 +1,164 @@
 ---
 name: deliver
 description: "Execute a complete delivery pipeline for a task. Use when asked to build, fix, refactor, migrate, or implement any change that benefits from structured planning and validation."
-version: 4.0.0
+version: 5.0.0
 ---
 
 # deliver
 
-You are the pipeline orchestrator. You manage the delivery pipeline directly — classifying the task, choosing a mode, running phases in order, and delegating each phase to the correct specialist agent.
+You are the pipeline orchestrator. You run a GAN-style adversarial loop — proposer vs critic, grounded by external verification. You delegate each step to the correct specialist agent and manage iteration, routing, and stop conditions.
 
-**You are the orchestrator. Do NOT delegate to the orchestrator agent.** Delegate each phase to the specialist agent for that phase.
+**You are the orchestrator. Do NOT delegate to another orchestrator.** Delegate each step to the specialist agent for that step.
 
 ## When to Use
 
-When a task benefits from structured exploration, planning, implementation, testing, and review. Not needed for trivial one-line changes.
+When a task benefits from structured exploration, planning, implementation, and verification. Not needed for trivial one-line changes.
+
+## Principles
+
+All steps operate under the engineering principles in `dev:principles`. Key rules for the loop:
+
+- **Do not trust own output without critic.** Every proposal gets adversarial review.
+- **Do not rely on agreement.** Prefer simple, correct, testable solutions.
+- **Use external checks.** Tests, types, builds, lint, API responses — ground truth over reasoning.
+- **Contract-first.** Convert every task into goals, constraints, and testable success criteria before work begins.
 
 ## Inputs
 
-- **$ARGUMENTS**: Task description from the user
-- **mode** (optional): quick, standard, deep, or high-risk. Auto-detected if not specified.
+- **task description**: What needs to be done.
 
-## Step 1 — Classify and Choose Mode
+## Process
 
-Assess the task:
-- **Scope**: how many files/modules affected?
-- **Risk**: what breaks if this goes wrong?
-- **Ambiguity**: is the path obvious or are there multiple viable approaches?
+### Step 1 — Frame the Contract
 
-Choose a mode:
+Before any exploration or planning, convert the task description into a clear contract:
 
-| Mode | When | Phases |
-|------|------|--------|
-| **quick** | Single-file, low risk, obvious path | explore → plan → implement → review |
-| **standard** | Normal bug/feature, moderate complexity | explore → plan → implement → test → review |
-| **deep** | Multiple strategies, significant refactor, cross-cutting | explore → plan → critique → implement → test → review |
-| **high-risk** | Migration, auth/security, infra, wide blast radius | explore → plan → critique → implement → test → review |
+- **Goals**: What must be achieved. Specific, measurable outcomes.
+- **Constraints**: What must not be violated. Boundaries and invariants.
+- **Success criteria**: Testable conditions. Each criterion must be verifiable by an external check (test, type check, build, lint, API call) or by mechanical inspection (file exists, config value set, pattern present). If a criterion cannot be externally verified, flag it.
 
-Quick mode skips plan critique and testing. Standard mode skips plan critique. Deep and high-risk run all phases — they differ in the depth expected within each phase.
+The contract is the single source of truth for the entire loop. All steps reference it.
 
-When in doubt, choose the more cautious mode.
-
-## Multi-Agent Parallel Dispatch
-
-Phases 2 (Planning), 3 (Plan Critique), and 6 (Review) use **multi-agent parallel dispatch** to increase analytical coverage and reduce blind-spot risk. The number of agents is determined by the Model Selection Strategy (see below) — one agent per selected model, capped at 4. When only 1 model qualifies, standard single-agent behavior applies and no synthesis step is needed.
-
-### Dispatch Pattern
-
-For each of these three phases, the orchestrator:
-
-1. **Generates perspective prompts** — one per model in the model pool (see Model Selection Strategy below). Perspectives are complementary lenses for the agent's analysis — choose them dynamically based on the task domain, risk profile, and complexity. Never use a fixed list. Examples:
-
-   - **Planning**: "minimum-risk, maximum-rollback-safety focus", "delivery-speed, minimum-change focus", "long-term maintainability and design quality focus"
-   - **Critique**: "completeness and gap analysis focus", "feasibility and implementation risk focus", "criteria clarity and testability focus"
-   - **Review**: "correctness and edge-case focus", "design quality and maintainability focus", "plan adherence and scope discipline focus"
-
-2. **Dispatches parallel agents** — one per model in the model pool (see Model Selection Strategy above). Each agent receives the standard phase inputs plus its unique perspective prompt. Assign each agent a different model from the pool via the task tool's `model` parameter. If a model is unavailable at dispatch time, skip it rather than falling back to the default. Each agent receives the full input context, not a summary.
-
-3. **Collects all outputs** after parallel dispatch completes.
-
-4. **Synthesizes a single handoff artifact** conforming to the stage's handoff schema. Synthesis is performed inline by the orchestrator (not by a separate agent). See each phase below for stage-specific synthesis instructions.
-
-### Complementarity with Internal Perspectives
-
-The planner agent generates its own 2–6 internal analytical perspectives as part of its planning process. The external perspective prompt provides a *lens* or *orientation* for the agent's entire session, while the internal perspectives are analytical angles *within* that lens. These two mechanisms are complementary — each parallel planner operates under its assigned external lens and generates its own internal perspectives within that lens.
-
-### Model Selection Strategy
-
-When dispatching parallel agents, the orchestrator **must** select models dynamically from the environment's available model list (documented in the task tool's `model` parameter). Do not hardcode model IDs — the selection must adapt as models are added, removed, or re-tiered.
-
-**Algorithm:**
-
-1. **Read** the available models from the task tool's `model` parameter documentation. Each model has an ID, display name, and tier label (e.g., premium, standard, fast/cheap).
-2. **Exclude** all models labeled fast/cheap. These are unsuitable for the analytical depth required by parallel dispatch phases.
-3. **Group** the remaining models by top-level provider — the provider is the first token of the model ID (e.g., `claude`, `gpt`, `gemini`). Models from the same provider but different sub-families (e.g., `claude-opus` vs `claude-sonnet`) belong to the same provider group.
-4. **Select one model per provider** — within each provider group, pick the model with the highest tier (premium > standard). If multiple models share the highest tier, pick the one with the latest version number or the largest context window.
-5. The resulting set of per-provider best models is the **model pool** for parallel dispatch.
-
-**Dispatch count:** The number of parallel agents for a phase equals the number of models in the pool (capped at 4). Each agent receives a unique model from the pool. This ensures every parallel agent runs on a different provider, maximizing reasoning diversity.
-
-**Fallback:** If only 1 model qualifies (e.g., only one provider is available), dispatch a single agent — no synthesis step is needed.
-
-### Fresh Perspectives on Re-Runs
-
-When a feedback loop triggers a re-run of a parallelized phase, generate **fresh** perspective prompts — do not reuse perspectives from the previous round. Fresh perspectives reduce the chance of repeating the same blind spot.
-
-## Step 2 — Execute Pipeline
-
-Run phases in order. Do not skip phases unless the chosen mode excludes them.
-
-### Phase 1 — Exploration
+### Step 2 — Explore
 
 Delegate to the **explorer agent**.
 
-Provide: the task description and chosen mode.
+Provide: the contract (goals, constraints, success criteria) and the task description.
 
-The explorer maps the codebase, surfaces constraints, catalogs known facts, identifies unknowns, and flags risk hotspots. Collect the exploration findings for Phase 2.
+The explorer maps the codebase, surfaces constraints, catalogs known facts, identifies unknowns, and flags risk hotspots. Collect the exploration report.
 
-### Phase 2 — Planning
+Exploration runs **once** at the start. Re-exploration only happens if the critic or verifier explicitly signals an exploration gap (see loop routing below). Re-exploration is always **targeted** — focused on the specific gap, not a full re-run.
 
-Generate perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to **planner agents in parallel** (one per model in the pool), each receiving: the task description, mode, exploration findings from Phase 1, and its unique perspective prompt. Assign models per the Model Selection Strategy.
+### Step 3 — GAN Loop
 
-Each planner absorbs findings, generates strategies (1 for quick/standard, 2-3 for deep/high-risk), chooses a strategy with rationale, designs execution phases with acceptance criteria, defines non-goals, and documents mitigations. Each planner's internal perspective mechanism (2–6 analytical perspectives) operates within its assigned external lens.
+Run the adversarial loop. Each iteration has four steps: **propose → critic → verify → decide**.
 
-**Synthesis** — After all planners return, synthesize a single `planner_handoff`:
+**Max iterations: 3.** Track iteration count and improvement across iterations.
 
-1. Read all returned plans — strategies chosen, execution phases, acceptance criteria, non-goals, risk mitigations, rollback notes
-2. Identify **convergence**: strategies or phases that multiple planners agree on (high-confidence elements)
-3. Identify **divergence**: where planners chose different strategies or identified different risks
-4. For divergent elements, assess which approach best serves the task given the exploration findings
-5. Synthesize a single plan that incorporates the strongest elements — this may be one planner's plan adopted wholesale, or a combination of the best elements across planners. Explain the rationale for what was selected
-6. Union non-goals, risk mitigations, and rollback notes from all planners; deduplicate
-7. Emit one conforming `planner_handoff`. Collect the synthesized plan for the next phase.
+#### Step 3a — Propose
 
-### Phase 3 — Plan Critique (deep and high-risk only)
+The propose step has two sub-steps executed in sequence:
 
-Generate perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to **plan-critic agents in parallel** (one per model in the pool), each receiving: the plan from Phase 2, exploration findings from Phase 1, and its unique perspective prompt. Assign models per the Model Selection Strategy.
+**Sub-step 1: Plan** — Delegate to the **proposer agent** (planning mode).
 
-Each critic evaluates the plan for completeness, sequencing, criteria clarity, and risk coverage from its assigned perspective.
+Provide: the contract, exploration report, and (if iteration > 1) the previous critic report and verify report.
 
-**Synthesis** — After all critics return, synthesize a single `critic_handoff`:
+The proposer creates or revises:
+- A strategy and execution plan with phased steps
+- Acceptance criteria per phase (derived from the contract's success criteria)
+- Non-goals
+- Risk mitigations
 
-1. Collect all critics' outputs — scores, issues, strengths, and routing decisions
-2. **Issues**: Union all issues found across critics; deduplicate; retain the highest severity for duplicates. An issue raised by one critic may be valid even if others missed it
-3. **Strengths**: Union all strengths; deduplicate
-4. **Scores**: For each dimension, note the range across agents (min and max). Do NOT mechanically average — use the ranges as evidence alongside the qualitative reasoning
-5. **Routing decision** — Re-evaluate all reasoning and make your own independent decision (`accept` / `revise-plan` / `re-explore`):
-   - Read all agents' issues, strengths, and rationale
-   - Assess each issue's validity against the actual plan and exploration findings
-   - Weigh the collective evidence — severity, consistency, and quality of reasoning matter
-   - Make a reasoned routing decision based on the weight of evidence. Do NOT use majority vote or most-conservative-wins
-6. If the decision is `revise-plan` or `re-explore`, synthesize guidance from the most compelling issues across all critics
-7. Emit one conforming `critic_handoff`
+On iteration 1, the proposer starts fresh. On subsequent iterations, the proposer must address every blocking issue raised by the critic and every failing check from the verifier. The proposer must not simply restate the previous plan — it must show what changed and why.
 
-Route the synthesized decision:
-- **accept** → proceed to Phase 4
-- **revise-plan** → return to Phase 2 with revision guidance (max 2 rounds)
-- **re-explore** → return to Phase 1 with specific gaps (max 1 round)
+**Sub-step 2: Implement** — Delegate to the **implementer agent**.
 
-### Phase 4 — Implementation
+Provide: the plan from sub-step 1, exploration report, and (if iteration > 1) the previous critic report, verify report, and prior implementation context.
 
-Delegate to the **implementer agent**.
+The implementer executes the plan incrementally, verifies changes locally (build, typecheck if available), and documents files changed and any deviations.
 
-Provide: the approved plan (phases, acceptance criteria, dependencies), exploration findings, and any prior implementation context if this is a revision cycle.
+#### Step 3b — Critic
 
-The implementer executes phases incrementally, verifies changes, and documents files changed and any deviations. Collect the implementation report for Phase 5.
+Delegate to the **critic agent**.
 
-### Phase 5 — Testing (standard, deep, and high-risk only)
+Provide: the contract, exploration report, the plan from 3a, and the implementation report from 3a.
 
-Delegate to the **tester agent**.
+The critic is **adversarial**. Its job is to find real flaws, not to confirm the proposal. Rules:
 
-Provide: the plan, implementation report, and list of files changed.
+- Do not trust the proposer's claims. Verify against the contract and exploration findings.
+- Do not just agree. If everything looks correct, explain *why* with evidence — silence is not acceptance.
+- Challenge assumptions, find missing edge cases, check constraint violations.
+- Prefer simple, correct solutions. Flag unnecessary complexity.
+- Reference `dev:principles` and `knowledge/planning-patterns.md` anti-patterns.
 
-The tester maps criteria to checks, runs validations, classifies failures, estimates confidence, and reports residual risk. Returns one recommendation:
-- **proceed** → continue to Phase 6
-- **revise** → return to Phase 4 with failure details (max 2 rounds)
-- **replan** → trigger replanning, then return to Phase 2 (max 1 replan per run)
+The critic produces:
+- **Specific issues** with evidence and severity (blocking / high / medium / low)
+- **What's working** — strengths to preserve
+- **Signal**: one of:
+  - `accept` — proposal is sound, proceed to verify
+  - `revise-plan` — strategy or plan has flaws (specify what)
+  - `revise-implementation` — plan is sound but implementation has issues (specify what)
+  - `re-explore` — critical exploration gap discovered (specify what's missing)
 
-### Phase 6 — Review
+#### Step 3c — Verify
 
-Generate perspective prompts per the Multi-Agent Parallel Dispatch protocol. Delegate to **reviewer agents in parallel** (one per model in the pool), each receiving: exploration findings, plan, implementation report, test report (if testing ran), and its unique perspective prompt. Assign models per the Model Selection Strategy.
+Delegate to the **verifier agent**.
 
-Each reviewer evaluates correctness, design, plan adherence, and test adequacy from its assigned perspective.
+Provide: the contract, plan, implementation report, and critic report.
 
-**Synthesis** — After all reviewers return, synthesize a single `reviewer_handoff`:
+The verifier runs **external checks** — these are ground truth, not reasoning:
 
-1. Collect all reviewers' outputs — scores, issues found, follow-ups, and routing decisions
-2. **Issues**: Union all issues found across reviewers; deduplicate; retain the highest severity for duplicates. An issue raised by one reviewer may be the most important finding
-3. **Follow-ups**: Union all follow-ups; deduplicate
-4. **Scores**: For each dimension, note the range across agents (min and max). Do NOT mechanically average — use the ranges as evidence alongside the qualitative reasoning
-5. **Routing decision** — Re-evaluate all reasoning and make your own independent decision (`approve` / `approve-with-follow-ups` / `revise` / `replan`):
-   - Read all agents' issues, strengths, and rationale
-   - Assess each issue's validity against the actual code changes and artifacts
-   - Weigh the collective evidence — severity, consistency, and quality of reasoning matter
-   - Make a reasoned routing decision based on the weight of evidence. Do NOT use majority vote or most-conservative-wins
-6. If the decision includes follow-ups, consolidate from all reviewers; deduplicate
-7. If the decision is `revise` or `replan`, synthesize actionable guidance from the most compelling issues across all reviewers
-8. Emit one conforming `reviewer_handoff`
+1. **Build** the code
+2. **Type check** if the project has a type checker
+3. **Lint** if the project has a linter
+4. **Run existing test suite**
+5. **Write tests for gaps** — if success criteria lack test coverage, add tests
+6. **Run the full test suite** including new tests
 
-Route the synthesized disposition:
-- **approve** → deliver
-- **approve-with-follow-ups** → deliver with noted follow-ups
-- **revise** → return to Phase 4 with specific issues (max 2 rounds)
-- **replan** → trigger replanning, then return to Phase 2 (max 1 replan per run)
+The verifier also:
+- **Classifies failures**: blocking (must fix), degraded (should fix), cosmetic (can defer)
+- **Maps results to success criteria**: for each criterion in the contract, report pass / partial / fail / untested
+- **Reports residual risk**: what's not covered by checks
+- **Estimates confidence**: high (>90%), medium (70-90%), low (<70%)
 
-## Step 3 — Handle Feedback Loops
+#### Step 3d — Decide
 
-| Signal | Source | Routes To | Max Cycles |
-|--------|--------|-----------|------------|
-| revise-plan | Critic | Phase 2 — Planning | 2 |
-| re-explore | Critic | Phase 1 — Exploration | 1 |
-| revise | Tester | Phase 4 — Implementation | 2 |
-| replan | Tester | Replanning → Phase 2 | 1 |
-| revise | Reviewer | Phase 4 — Implementation | 2 |
-| replan | Reviewer | Replanning → Phase 2 | 1 |
+The orchestrator (you) makes the decision. Do not delegate this step.
 
-**Replanning**: Analyze what went wrong, assess salvageable work, generate a materially different strategy, and produce revised phases. Max 1 replan per run.
+Evaluate the critic report and verify report against the contract's success criteria:
 
-**Re-runs of parallelized phases**: When a feedback loop re-triggers Phase 2 (planning), Phase 3 (critique), or Phase 6 (review), dispatch agents per the Multi-Agent Parallel Dispatch protocol (re-apply Model Selection Strategy for models, generate **fresh** perspective prompts) — do not reuse perspective prompts from the previous round.
+**ACCEPT** if ALL of:
+- All success criteria pass in verification (or are verified by mechanical inspection)
+- No blocking issues from the critic remain unaddressed
+- Confidence is medium or higher
 
-If cycles exhaust without resolution, escalate to the user.
+**ITERATE** if ANY of:
+- Blocking verification failures exist → route based on critic signal
+- Blocking critic issues remain → route to next iteration's propose
+- Success criteria not yet met → route to next iteration
 
-## Step 4 — Deliver
+**ESCALATE TO USER** if ANY of:
+- Max 3 iterations reached without acceptance
+- No measurable improvement after 2 iterations. Improvement is measured by: fewer blocking verification failures AND fewer blocking/high-severity critic issues compared to previous iteration. If both counts are equal or worse, there is no improvement.
+- Critic or verifier signals an unresolvable issue (e.g., contradictory requirements, missing external dependency)
 
-When the reviewer approves (with or without follow-ups), produce a delivery report:
+When escalating, report: what was attempted, what failed, what the critic found, what the verifier found, and what options remain.
+
+**Loop routing for next iteration:**
+- Critic signaled `revise-plan` → next iteration's propose revises strategy
+- Critic signaled `revise-implementation` → next iteration's propose keeps plan, revises implementation
+- Critic signaled `re-explore` → run targeted re-exploration before next propose
+- Verifier found blocking failures → feed failure details into next iteration's propose
+
+### Step 4 — Deliver
+
+When decide returns ACCEPT, produce a delivery report:
 
 - **Task**: what was requested
-- **Mode**: which mode was used
-- **Phases executed**: which phases ran (with any loops noted)
-- **Final disposition**: approve or approve-with-follow-ups
+- **Contract**: goals, constraints, success criteria
+- **Iterations**: how many loop iterations ran
+- **Final state**: which success criteria pass, which have residual risk
 - **Files changed**: list of all files modified
-- **Confidence**: overall confidence level
-- **Follow-ups**: items for later (if applicable)
-- **Key decisions**: notable choices made during the pipeline
+- **Confidence**: overall confidence level from verifier
+- **Key decisions**: notable choices and trade-offs made during the loop
+- **Follow-ups**: items for later (if any deferred issues exist)
