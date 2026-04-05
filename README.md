@@ -35,14 +35,19 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 ## Repository Structure
 
 ```
-├── plugins/            # Agent skill plugins
-│   ├── chats/          # Chat platform integrations (WhatsApp)
-│   ├── deliver/        # Delivery pipeline plugin
-│   ├── dev/            # Frontend development skills
-│   ├── documents/      # Document processing skills
-│   └── plan/           # Feature planning plugin
-├── external_plugins/   # Third-party plugins and integrations
-└── .github/            # GitHub & marketplace config
+├── AGENTS.md            # Agent-facing orientation (start here)
+├── CONTRIBUTING.md      # Contribution conventions and quality bar
+├── docs/
+│   ├── architecture.md  # Plugin/skill/agent architecture
+│   └── references/      # Industry references and source material
+├── plugins/             # Agent skill plugins
+│   ├── chats/           # Chat platform integrations (WhatsApp, WeChat)
+│   ├── deliver/         # Adversarial delivery pipeline
+│   ├── dev/             # Engineering principles, frontend, CodePen
+│   ├── documents/       # Document processing skills
+│   └── plan/            # Feature request clarification
+├── external_plugins/    # Third-party plugins and integrations
+└── .github/             # GitHub & marketplace config
 ```
 
 ## License
