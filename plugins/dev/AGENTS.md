@@ -12,6 +12,7 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - `skills/frontend-design` — Production-grade frontend interfaces
 - `skills/codepen` — CodePen project downloader
 - `skills/dev-logs` — Dev server log reader and setup assistant
+- `skills/browser-logs` — Browser console log capture via Chrome DevTools Protocol
 
 ## Operational Rules
 
