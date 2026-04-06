@@ -11,6 +11,7 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - `skills/principles` — Core engineering principles for AI-maintained codebases (canonical source)
 - `skills/frontend-design` — Production-grade frontend interfaces
 - `skills/codepen` — CodePen project downloader
+- `skills/dev-logs` — Dev server log reader and setup assistant
 
 ## Operational Rules
 
