@@ -2,7 +2,7 @@
 
 ## Iteration Definition
 
-An **iteration** is one complete pass through Plan → Critic → Implement → Verify → Decide. Critic's `revise-plan` signal loops within the current iteration and does **not** increment the iteration counter. Cap revise-plan sub-loops at 2 per iteration. If the plan cannot be accepted after 2 revisions within one iteration, escalate.
+An **iteration** is one complete pass through Plan → Critic → Verify Critic → Implement → Verify → Decide. Critic's `revise-plan` signal loops within the current iteration and does **not** increment the iteration counter. Cap revise-plan sub-loops at 2 per iteration. If the plan cannot be accepted after 2 revisions within one iteration, escalate.
 
 ## Stop Conditions
 
@@ -14,9 +14,10 @@ Max iterations: 2 for Standard tasks, 3 for Complex tasks (per complexity routin
 
 ## Loop Routing
 
-- Critic signals `revise-plan` → next iteration revises strategy (back to Plan step)
-- Critic signals `re-explore` → targeted re-exploration of the specific gap (back to Explore)
-- Critic signals `accept` → proceed to Implement
+- Critic signals `revise-plan` → verified by critic-verifier → if confirmed, next iteration revises strategy (back to Plan step)
+- Critic signals `re-explore` → verified by critic-verifier → if confirmed, targeted re-exploration of the specific gap (back to Explore)
+- Critic signals `accept` → verified by critic-verifier → if confirmed, proceed to Implement
+- Critic-verifier may override signal if phantom issues are dismissed
 - Verifier finds blocking failures → feed details into next iteration's Plan step
 
 ## Handoff Artifacts
@@ -26,7 +27,8 @@ Each step produces a named artifact consumed by downstream steps:
 - `contract` — goals, constraints, testable success criteria (Frame → all)
 - `exploration_report` — files, constraints, unknowns, risks (Explore → planner, critic)
 - `plan` — strategy, execution phases with dependencies + acceptance criteria, non-goals, mitigations, rollback (Plan → critic, implementer, verifier)
-- `critic_report` — issues with severity + evidence, strengths, signal (Critic → decide, planner on next iter)
+- `critic_report` — issues with severity + evidence, strengths, signal (Critic → critic-verifier)
+- `verified_critic_report` — verified issues with verdicts, verified signal, confidence (Verify Critic → decide, planner on next iter)
 - `implementation_report` — files changed, deviations, verification focus (Implement → verifier)
 - `verify_report` — criteria status, failures classified, confidence, blocking count (Verify → decide, planner on next iter)
 - `pipeline_trace` — all events with timing, all artifacts or summaries, decisions (Pipeline end → post-mortem, learning log)
@@ -40,7 +42,7 @@ Prevent context rot on multi-iteration runs using threshold-based clearing and r
 1. `contract` — always in full (small, never changes)
 2. Current iteration artifacts — always in full
 3. Previous iteration `plan` — keep (strategy context persists)
-4. Previous iteration `critic_report` and `verify_report` — summarize to blocking issues + signal only
+4. Previous iteration `critic_report`, `verified_critic_report`, and `verify_report` — summarize to blocking issues + signal only
 5. Previous iteration `exploration_report` — summarize to file list + key constraints
 6. Previous iteration `implementation_report` — drop (superseded by current code state)
 

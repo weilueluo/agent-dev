@@ -1,7 +1,7 @@
 {
   "name": "deliver",
   "description": "Adversarial delivery pipeline. The deliver skill orchestrates a loop: planner creates strategy, critic adversarially challenges the plan, implementer executes, verifier provides ground truth through external checks. Iterates until verification passes or stop conditions are met.",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "author": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"

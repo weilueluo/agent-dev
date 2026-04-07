@@ -9,14 +9,15 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 ## Loop
 
 ```
-FRAME → EXPLORE → LOOP(PLAN → CRITIC → IMPLEMENT → VERIFY → DECIDE)
-                                                          max 3
+FRAME → EXPLORE → LOOP(PLAN → CRITIC → VERIFY-CRITIC → IMPLEMENT → VERIFY → DECIDE)
+                                                                          max 3
 ```
 
 - **Frame**: contract (goals, constraints, testable success criteria)
 - **Explore**: map system, surface constraints, identify risks
 - **Plan**: strategy + phased execution following `reference/plans-and-exec-plans.md`
 - **Critic**: adversarial plan review → signal (accept / revise-plan / re-explore)
+- **Verify Critic**: validate critic findings against evidence, filter phantoms, confirm signal
 - **Implement**: execute plan incrementally
 - **Verify**: external checks (build, test, lint, typecheck) + write tests for gaps
 - **Decide**: accept (verified) / iterate (improving) / escalate (stalled or max)
@@ -24,7 +25,7 @@ FRAME → EXPLORE → LOOP(PLAN → CRITIC → IMPLEMENT → VERIFY → DECIDE)
 ## Structure
 
 - `skills/` — deliver (orchestrator), explore-task, plan-task, critique-plan, implement-task, test-task, build-execution-graph
-- `agents/` — explorer, planner, critic, implementer, verifier
+- `agents/` — explorer, planner, critic, critic-verifier, implementer, verifier
 - `knowledge/planning-patterns.md` — Strategy and sequencing patterns
 - `scripts/` — Plan scoring, DAG rendering
 

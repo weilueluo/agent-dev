@@ -1,7 +1,7 @@
 ---
 name: deliver
 description: "Execute a complete delivery pipeline for a task. Use when asked to build, refactor, migrate, or implement any change that benefits from structured planning and validation. Don't use when the task is primarily a bug report, error, crash, or regression — use bugfix instead."
-version: 6.0.1
+version: 6.1.0
 ---
 
 # deliver
@@ -25,8 +25,8 @@ Before entering the loop, classify the task:
 ## Loop
 
 ```
-FRAME → EXPLORE → LOOP(PLAN → CRITIC → IMPLEMENT → VERIFY → DECIDE)
-                                                          max 3
+FRAME → EXPLORE → LOOP(PLAN → CRITIC → VERIFY-CRITIC → IMPLEMENT → VERIFY → DECIDE)
+                                                                          max 3
 ```
 
 ### 1. Frame
@@ -55,15 +55,28 @@ Delegate to **critic agent** with the plan. Adversarial review before implementa
 
 **Human checkpoint (complex tasks only):** When complexity routing classified the task as Complex, present the accepted plan to the user before proceeding to Implement. Wait for confirmation or adjustments.
 
-#### 3c. Implement
+#### 3c. Verify Critic
+
+Delegate to **critic-verifier agent** with the `critic_report`, `plan`, and `contract`. Validates that the critic's findings are grounded in real evidence — not hallucinated, misread, or based on incorrect assumptions. Produces a `verified_critic_report`:
+
+- Each issue marked `confirmed`, `downgraded`, or `dismissed` with verification evidence.
+- A verified signal that may differ from the critic's original if phantom issues changed the picture.
+
+The orchestrator uses the **verified signal** (not the critic's raw signal) for routing:
+
+- `accept` → proceed to Implement
+- `revise-plan` → return to 3a (same sub-loop cap applies)
+- `re-explore` → return to 2
+
+#### 3d. Implement
 
 Delegate to **implementer agent**. Executes the plan incrementally. Produces an `implementation_report`: files changed, deviations, verification focus areas.
 
-#### 3d. Verify
+#### 3e. Verify
 
 Delegate to **verifier agent**. Runs external checks (build, typecheck, lint, tests). Writes tests for coverage gaps. Maps results to contract criteria. Produces a `verify_report`: criteria status (pass/partial/fail/untested), failures classified, confidence, blocking failure count.
 
-#### 3e. Decide
+#### 3f. Decide
 
 - **Accept**: all contract criteria pass verification AND no blocking critic issues AND confidence ≥ medium.
 - **Iterate**: blocking issues remain AND iteration < 3 AND improvement observed (fewer blocking failures than previous iteration).
@@ -76,7 +89,8 @@ Delegate to **verifier agent**. Runs external checks (build, typecheck, lint, te
 | Frame | `contract` (goals, constraints, criteria) | all steps |
 | Explore | `exploration_report` | planner, critic |
 | Plan | `plan` (strategy, phases, criteria) | critic, implementer, verifier |
-| Critic | `critic_report` (issues, strengths, signal) | decide, planner (next iter) |
+| Critic | `critic_report` (issues, strengths, signal) | critic-verifier |
+| Verify Critic | `verified_critic_report` (verified issues, signal) | decide, planner (next iter) |
 | Implement | `implementation_report` (files, deviations) | verifier |
 | Verify | `verify_report` (criteria status, confidence) | decide, planner (next iter) |
 | Pipeline end | `pipeline_trace` (all artifacts + timing + decisions) | post-mortem, learning log |
