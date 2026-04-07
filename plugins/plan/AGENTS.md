@@ -12,7 +12,7 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - `skills/intake-and-scope` — Request normalization
 - `skills/clarification-loop` — Iterative Q&A management
 - `skills/feature-request-generation` — Final output assembly
-- `agents/` — Workers: repo-researcher, ambiguity-reviewer, risk-reviewer, problem-framing-reviewer
+- `agents/` — Workers: repo-researcher, ambiguity-reviewer, risk-reviewer, problem-framing-reviewer, testability-reviewer, observability-reviewer
 - `templates/` — Decision ledger schema, feature request template
 - `scripts/` — Question dedup, evidence summary, output validation
 

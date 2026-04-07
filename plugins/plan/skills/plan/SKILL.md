@@ -20,22 +20,29 @@ A **complete feature request** — no open questions, no unresolved ambiguity, n
 
 Execute phases in order. Do not skip any. Do not produce the final output until Phase 5 confirms all material ambiguity is resolved.
 
-### Phase 1 — Intent Extraction
+### Phase 1 — Understand Intent
 
 Parse the user's idea. Normalize it into a clear requested outcome, identify the user's higher-level goal, note stated constraints and non-goals. Initialize the decision ledger (see `templates/decision-ledger.json`).
 
 If the idea is too vague to parse, ask for a one-sentence clarification before proceeding.
 
-### Phase 2 — Repository Research
+### Phase 2 — Research
 
-Delegate to the **repo-researcher** agent. Provide the normalized outcome and constraints. Update the ledger's `evidence` field with findings.
+Run in parallel:
+
+1. **Repo** — Delegate to the **repo-researcher** agent with normalized outcome and constraints.
+2. **Online** — Use `web_search`/`web_fetch` for official docs, community discussions (Reddit, Stack Overflow, GitHub Discussions), and prior art in the ecosystem.
+
+Record all findings as evidence in the ledger.
 
 ### Phase 3 — Analysis
 
-Delegate to three agents **in parallel**:
+Delegate to five agents **in parallel**:
 - **ambiguity-reviewer** — gaps, assumptions, missing requirements
 - **risk-reviewer** — risks, constraints, edge cases
 - **problem-framing-reviewer** — is this solving the right problem?
+- **testability-reviewer** — are requirements mechanically verifiable?
+- **observability-reviewer** — can the feature be monitored, debugged, operated?
 
 If wrong-problem framing is detected, surface it to the user immediately.
 
@@ -50,7 +57,7 @@ Mandatory. Do not skip.
 5. Batch must-ask and should-ask questions (3–7 per round), ask the user
 6. Record answers, update ledger
 7. If answers change scope significantly, re-run relevant workers
-8. Repeat until no material questions remain (max 4 rounds)
+8. Repeat until no material questions remain (max 5 rounds)
 
 ### Phase 5 — Final Review
 
@@ -61,6 +68,10 @@ Review the complete ledger. Verify every material question is resolved and the o
 Generate the complete feature request from the ledger. Every claim must trace to ledger evidence or decisions. The output should cover at minimum: problem, user goal, current state, proposed feature, requirements, non-goals, constraints, risks, edge cases, acceptance criteria, and decisions made.
 
 Before presenting, verify: no TBD/TODO, no open questions, no implementation plan, all requirements are testable, all acceptance criteria are verifiable.
+
+## Standards
+
+Follow `dev:principles`. The decision ledger (`templates/decision-ledger.json`) is the source of truth — extend it with domain-specific fields as needed.
 
 ## Rules
 
