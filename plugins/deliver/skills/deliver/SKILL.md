@@ -1,6 +1,6 @@
 ---
 name: deliver
-description: "Execute a complete delivery pipeline for a task. Use when asked to build, refactor, migrate, or implement any change that benefits from structured planning and validation. Don't use when the task is primarily a bug report, error, crash, or regression — use bugfix instead."
+description: "Execute a complete delivery pipeline for a task. Use when asked to build, refactor, migrate, or implement any change that benefits from structured planning and validation."
 version: 6.1.0
 ---
 
