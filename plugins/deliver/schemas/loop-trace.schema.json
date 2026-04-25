@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-dev.local/plugins/deliver/schemas/loop-trace.schema.json",
+  "title": "Deliver Loop Trace",
+  "type": "object",
+  "required": [
+    "trace_id",
+    "issue_summary",
+    "started_at",
+    "completed_at",
+    "disposition",
+    "iterations",
+    "events"
+  ],
+  "properties": {
+    "trace_id": { "type": "string", "minLength": 1 },
+    "issue_summary": { "type": "string", "minLength": 1 },
+    "started_at": { "type": "string", "minLength": 1 },
+    "completed_at": { "type": "string", "minLength": 1 },
+    "disposition": {
+      "type": "string",
+      "enum": ["accept", "iterate", "escalate", "abandoned", "blocked"]
+    },
+    "iterations": { "type": "integer", "minimum": 0 },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "timestamp",
+          "step",
+          "iteration",
+          "duration_ms",
+          "token_estimate",
+          "artifact_size_tokens"
+        ],
+        "properties": {
+          "timestamp": { "type": "string", "minLength": 1 },
+          "step": {
+            "type": "string",
+            "enum": [
+              "frame",
+              "explore",
+              "plan",
+              "review_plan",
+              "verify_review",
+              "work",
+              "review_work",
+              "decide"
+            ]
+          },
+          "iteration": { "type": "integer", "minimum": 0 },
+          "duration_ms": { "type": "integer", "minimum": 0 },
+          "token_estimate": { "type": "integer", "minimum": 0 },
+          "artifact_size_tokens": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

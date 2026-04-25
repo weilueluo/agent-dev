@@ -1,6 +1,6 @@
 # Standards for Plans and Execution Plans
 
-This document defines the standards for authoring plans and execution plans (ExecPlans). It draws heavily from the [Codex Execution Plans](https://developers.openai.com/cookbook/articles/codex_exec_plans) methodology and adapts it for use within the deliver pipeline.
+This document defines the standards for authoring plans and execution plans (ExecPlans). It draws heavily from the [Codex Execution Plans](https://developers.openai.com/cookbook/articles/codex_exec_plans) methodology and adapts it for use within the deliver issue-resolution loop.
 
 ---
 
@@ -13,9 +13,37 @@ This document defines the standards for authoring plans and execution plans (Exe
 
 ---
 
-## Required Sections
+## Canonical Machine-Checkable Plan
 
-Every plan must contain the following sections. They are not optional.
+The canonical deliver plan is a JSON-compatible artifact governed by `../../../schemas/plan.schema.json`. It is the contract consumed by plan review, implementation, execution graph rendering, and validation. Prose ExecPlans are optional human-readable expansions for long-running or high-context work; every prose section must map back to the schema fields below.
+
+Required top-level fields:
+
+- `planning_mode`
+- `chosen_strategy` with `name`, `summary`, and `rationale`
+- `alternatives_considered`
+- `execution_phases`
+- `acceptance_criteria`
+- `non_goals`
+- `risk_mitigations`
+- `rollback_notes`
+
+Each item in `execution_phases` must include:
+
+- `id`
+- `name`
+- `depends_on`
+- `files_affected`
+- `description`
+- `exact_changes`
+- `acceptance_criteria`
+- `verification_commands`
+
+Per-phase `depends_on` is the dependency contract. Do not add or require a top-level dependencies list. Validate plans with `python ../../../scripts/validate_artifacts.py --type plan`.
+
+## Optional Prose ExecPlan Sections
+
+When an optional prose ExecPlan is warranted, include the following sections. They expand the canonical artifact; they do not replace it.
 
 ### Purpose / Big Picture
 
@@ -35,7 +63,7 @@ Use timestamps to measure rates of progress.
 
 ### Surprises & Discoveries
 
-Document unexpected behaviors, bugs, optimizations, or insights discovered during implementation. Provide concise evidence.
+Document unexpected behaviors, bugs, optimizations, source findings, or insights discovered during work. Provide concise evidence.
 
 ```
 - Observation: …
@@ -78,7 +106,7 @@ If you break the work into milestones, introduce each with a brief paragraph tha
 - The commands to run.
 - The acceptance you expect to observe.
 
-Each milestone must be independently verifiable and incrementally implement the overall goal.
+Each milestone must be independently verifiable and incrementally advance the overall goal.
 
 ### Idempotence and Safety
 
@@ -114,13 +142,13 @@ It is acceptable to include explicit prototyping milestones when they de-risk a 
 - **Letter-of-the-law compliance.** Do not describe a feature so narrowly that resulting code compiles but does nothing meaningful.
 - **Outsourcing decisions.** When ambiguity exists, resolve it in the plan itself and explain why you chose that path.
 - **Missing validation.** Never omit how to prove the change works.
-- **Stale plans.** If you change course mid-implementation, document why in the Decision Log and reflect the implications in Progress.
+- **Stale plans.** If you change course mid-work, document why in the Decision Log and reflect the implications in Progress.
 
 ---
 
 ## Skeleton
 
-Below is a minimal skeleton for a new plan. Flesh it out during research and implementation.
+Below is a minimal skeleton for a new plan. Flesh it out during research and work.
 
 ```
 # <Short, action-oriented description>

@@ -1,0 +1,74 @@
+{
+  "skill_name": "deliver",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Refactor the payments module so card and ACH retries share the same policy engine. It probably touches several files and I want tests proving existing retry behavior still works.",
+      "expected_output": "The skill should trigger the full issue-resolution loop: frame a verifiable contract, explore relevant files, plan phased work, review the plan before work, execute through a worker, review with tests, and decide based on evidence.",
+      "files": [],
+      "expectations": [
+        "Uses the loop because the work is multi-step and evidence-dependent",
+        "Creates mechanically verifiable acceptance criteria",
+        "Uses plan -> work -> review terminology consistently",
+        "Includes a plan review before work begins"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "There's a crash in production when users upload an empty CSV. Here's the stack trace. Can you fix it?",
+      "expected_output": "The skill should run the deliver loop because the stack trace makes this an evidence-dependent production crash/regression with non-trivial diagnosis and verification work.",
+      "files": [],
+      "expectations": [
+        "Identifies the prompt as evidence-dependent crash or regression work",
+        "Owns the work with the deliver loop",
+        "Frames reproduction, root-cause, fix, and verification as verifiable criteria"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Rewrite the deliver skill based on the latest official Agent Skills best practices from Anthropic and the open Agent Skills standard. Keep it portable and concise.",
+      "expected_output": "The skill should trigger because this is a research-backed, multi-step skill rewrite. It should frame official-source research and skill-maintenance acceptance criteria, then update SKILL.md and references with progressive disclosure.",
+      "files": [],
+      "expectations": [
+        "Treats the task as a research-backed rewrite",
+        "Uses official or primary sources as evidence",
+        "Applies progressive disclosure and concise SKILL.md structure",
+        "Updates eval prompts or skill-maintenance resources when behavior changes"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Fix the typo in the README where it says recieve instead of receive.",
+      "expected_output": "The skill should not run the loop. The change is an obvious one-step edit and should be handled directly.",
+      "files": [],
+      "expectations": [
+        "Recognizes that a full loop would add no useful evidence",
+        "Avoids unnecessary plan/work/review orchestration",
+        "Handles or recommends direct edit without starting the full loop"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Migrate all plugin docs from a delivery-pipeline model to a generic issue-resolution model, but avoid breaking marketplace metadata and keep existing installed skill names compatible.",
+      "expected_output": "The skill should trigger the loop, preserve compatibility constraints, review the plan before work, and validate marketplace/version metadata.",
+      "files": [],
+      "expectations": [
+        "Uses the loop because the change spans multiple coordinated surfaces",
+        "Preserves compatibility as an explicit constraint",
+        "Escalates only if the next step is unsafe, unclear, or requires human judgment",
+        "Includes metadata/version validation in acceptance criteria"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "The app is broken for some users. Please fix it.",
+      "expected_output": "The skill should not start the loop yet. The report is too vague to frame verifiable criteria, so it should ask for reproduction steps, evidence, logs, expected-vs-actual behavior, and environment details first.",
+      "files": [],
+      "expectations": [
+        "Recognizes that the bug report is insufficient to frame verifiable criteria",
+        "Asks for reproduction steps, evidence, logs, expected-vs-actual behavior, and environment details",
+        "Does not start the full loop until the missing evidence is provided"
+      ]
+    }
+  ]
+}

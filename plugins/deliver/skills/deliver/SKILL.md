@@ -1,128 +1,101 @@
 ---
 name: deliver
-description: "Execute a complete delivery pipeline for a task. Use when asked to build, refactor, migrate, or implement any change that benefits from structured planning and validation."
-version: 6.1.0
+description: "Orchestrates issue resolution with a concise plan -> work -> review loop until convergence. Use for multi-step, uncertain, high-impact, or evidence-dependent work, including non-trivial bug, crash, regression, and unexpected-behavior work; avoid obvious one-step edits and pure Q&A; ask for missing evidence when reports cannot be framed into verifiable criteria."
+version: 7.4.0
 ---
 
 # deliver
 
-You are the orchestrator. Drive the loop, delegate to specialists, never implement directly.
+You are the issue-resolution orchestrator. Keep the active context lean, load supporting resources only when needed, and drive the loop until the contract is satisfied, the loop stalls, or human judgment is required.
 
-## When to Use
+The skill keeps the historical name `deliver` for compatibility. Its job is not "delivery" in the narrow sense; it coordinates issues that need structured plan -> work -> review convergence.
 
-Use the full pipeline for tasks that benefit from structured planning and validation: multi-file changes, refactors, migrations, new features with testable criteria.
+## Skill design rules
 
-**Do NOT use** for: single-line fixes, typo corrections, config changes, documentation-only edits, or any task where the change is obvious and < 50 lines. For these, implement directly. For bug reports, errors, crashes, or regressions, use the bugfix skill instead.
+This SKILL.md is the overview layer. It should stay concise because it remains in context after activation. Use the referenced files below for details instead of inlining every rule.
 
-## Complexity Routing
+- Use consistent terms: **issue**, **contract**, **plan**, **work**, **review**, **decide**. Legacy aliases are accepted only when consuming old traces.
+- Match freedom to risk: exploration can be flexible, plans should be structured, stop conditions and protected actions are strict.
+- Prefer existing tools, scripts, tests, and project commands. Do not assume optional packages or services are installed.
+- Use forward-slash paths for skill resource references, even on Windows, because skills are portable across clients.
+- Require explicit human approval before destructive, externally visible, sensitive, or hard-to-reverse actions.
 
-Before entering the loop, classify the task:
+## Load-on-demand resources
 
-- **Trivial** (typo, config, docs): implement directly, no pipeline.
-- **Standard** (single feature, bug fix, < 5 files): full pipeline, max 2 iterations.
-- **Complex** (refactor, migration, multi-service, > 10 files): full pipeline, max 3 iterations, human checkpoint enabled after critic accepts.
+Read only the resource needed for the current step:
 
-## Loop
+| Need | Resource |
+|------|----------|
+| Plan format or ExecPlan standards | `reference/plans-and-exec-plans.md` |
+| Skill authoring standards for maintaining this skill | `reference/skill-standards.md` |
+| Stop conditions, loop routing, compression, protected actions | `../../OPERATING-RULES.md` |
+| Strategy patterns, anti-patterns, convergence patterns | `../../knowledge/planning-patterns.md` |
+| Evaluating this loop or adding benchmark tasks | `../../knowledge/eval-guide.md` and `evals/evals.json` |
+| Trace schema and observability fields | `../../knowledge/observability.md` |
+| Plan schema | `../../schemas/plan.schema.json` |
+| Loop trace schema | `../../schemas/loop-trace.schema.json` |
+| Artifact validator | `../../scripts/validate_artifacts.py` |
+
+## When to use the loop
+
+Use the full loop for issues with meaningful uncertainty, multiple steps, cross-file or cross-system impact, irreversible choices, or acceptance criteria that need validation. Examples: feature work, refactors, migrations, larger fixes, research-backed rewrites, operational changes, documentation systems that need review, and non-trivial or evidence-dependent bug reports, crashes, regressions, or unexpected behavior.
+
+Use three-way routing for defect-like reports: run the full loop for non-trivial or evidence-dependent bug reports, crashes, regressions, and unexpected behavior; handle obvious one-step fixes directly without the loop; ask for reproduction steps, evidence, logs, expected-vs-actual behavior, and environment details before starting the loop when a report lacks enough information to frame verifiable criteria.
+
+## Loop overview
 
 ```
-FRAME → EXPLORE → LOOP(PLAN → CRITIC → VERIFY-CRITIC → IMPLEMENT → VERIFY → DECIDE)
-                                                                          max 3
+FRAME -> EXPLORE -> LOOP(PLAN -> REVIEW-PLAN -> VERIFY-REVIEW -> WORK -> REVIEW-WORK -> DECIDE)
 ```
 
 ### 1. Frame
 
-Convert the task into a **contract**: goals, constraints, testable success criteria. Every criterion must be mechanically verifiable (test, build, lint, typecheck, inspection). Rewrite any that are not.
+Convert the request into a **contract**: issue statement, desired outcome, constraints, non-goals, and acceptance criteria. Every criterion must be verifiable by an appropriate check: test, build, lint, typecheck, command output, trace, artifact inspection, source citation, or explicit human approval.
+
+If criteria are not verifiable, rewrite them before proceeding. If scope or desired outcome is ambiguous, ask for clarification.
 
 ### 2. Explore
 
-Delegate to **explorer agent**. Produces an `exploration_report`: relevant files, constraints, unknowns, risk hotspots.
+Delegate to the **explorer agent**. It produces an `exploration_report`: relevant context, files or artifacts, constraints, known facts, unknowns, and risk hotspots.
 
-### 3. Loop (max 3 iterations)
+Use targeted re-exploration only when the verified plan review confirms a specific context gap.
 
-#### 3a. Plan
+### 3. Plan
 
-Delegate to **planner agent**. Produces a `plan` following `reference/plans-and-exec-plans.md`: strategy, phased execution with dependencies and acceptance criteria, non-goals, mitigations, rollback.
+Delegate to the **planner agent**. It produces a machine-checkable `plan` with strategy, phased work, per-phase `depends_on`, acceptance criteria, non-goals, mitigations, and rollback/recovery notes.
 
-On iteration 2+: planner addresses every blocking issue from the previous critic and verifier reports. Must show what changed and why.
+When creating or revising plans, read `reference/plans-and-exec-plans.md`.
 
-#### 3b. Critic (plan)
+### 4. Review plan
 
-Delegate to **critic agent** with the plan. Adversarial review before implementation begins. Produces a `critic_report` with exactly one signal:
+Delegate to the **critic agent**. It challenges the plan before work begins and produces a `plan_review_report` (`critic_report` legacy alias) with exactly one signal:
 
-- `accept` — plan is sound, proceed to implement
-- `revise-plan` — strategy flawed, return to 3a (max 2 revise-plan sub-loops per iteration)
-- `re-explore` — critical context missing, return to 2
+- `accept` — plan is sound enough to execute
+- `revise-plan` — strategy, sequencing, criteria, or risk handling must be fixed before work
+- `re-explore` — critical context is missing; investigate the named gap only
 
-**Human checkpoint (complex tasks only):** When complexity routing classified the task as Complex, present the accepted plan to the user before proceeding to Implement. Wait for confirmation or adjustments.
+Delegate to the **critic-verifier agent** to verify review findings against evidence. Route only on the verified signal.
 
-#### 3c. Verify Critic
+### 5. Work
 
-Delegate to **critic-verifier agent** with the `critic_report`, `plan`, and `contract`. Validates that the critic's findings are grounded in real evidence — not hallucinated, misread, or based on incorrect assumptions. Produces a `verified_critic_report`:
+Delegate to the **implementer agent** as the worker. It executes the accepted plan incrementally, using tools appropriate to the issue type. It produces a `work_report` (`implementation_report` legacy alias): phases completed, files or artifacts changed, deviations, unresolved issues, and review focus areas.
 
-- Each issue marked `confirmed`, `downgraded`, or `dismissed` with verification evidence.
-- A verified signal that may differ from the critic's original if phantom issues changed the picture.
+### 6. Review work
 
-The orchestrator uses the **verified signal** (not the critic's raw signal) for routing:
+Delegate to the **verifier agent** as the reviewer. It checks completed work against the contract using external or inspectable evidence. It produces a `review_report` (`verify_report` legacy alias): criteria status (`pass` / `partial` / `fail` / `untested`), checks performed, failures classified, confidence, residual risk, and blocking issue count.
 
-- `accept` → proceed to Implement
-- `revise-plan` → return to 3a (same sub-loop cap applies)
-- `re-explore` → return to 2
+### 7. Decide
 
-#### 3d. Implement
+- **Accept**: the contract is satisfied, evidence is sufficient, and no blocking review issue remains.
+- **Continue**: a concrete next pass is likely to improve the result.
+- **Escalate**: the loop is not improving, the next step is unclear or unsafe, or the decision requires human judgment.
 
-Delegate to **implementer agent**. Executes the plan incrementally. Produces an `implementation_report`: files changed, deviations, verification focus areas.
+## Convergence and trace
 
-#### 3e. Verify
+Improvement must be measurable: fewer blocking issues, more passing criteria, clearer scope, or higher evidence-backed confidence. A loop that repeats the same plan, same failures, or same uncertainty has stalled.
 
-Delegate to **verifier agent**. Runs external checks (build, typecheck, lint, tests). Writes tests for coverage gaps. Maps results to contract criteria. Produces a `verify_report`: criteria status (pass/partial/fail/untested), failures classified, confidence, blocking failure count.
+At loop completion, produce a machine-checkable `loop_trace` (`pipeline_trace` legacy alias) recording step timing, handoff artifacts or summaries, decisions, iteration count, final disposition, and residual risk. Validate exact trace fields with `../../scripts/validate_artifacts.py` using `--type loop-trace`.
 
-#### 3f. Decide
+## Skill maintenance
 
-- **Accept**: all contract criteria pass verification AND no blocking critic issues AND confidence ≥ medium.
-- **Iterate**: blocking issues remain AND iteration < 3 AND improvement observed (fewer blocking failures than previous iteration).
-- **Escalate**: max iterations reached OR no improvement after 2 iterations OR unresolvable issue. Report to user.
-
-## Handoff Artifacts
-
-| Step | Produces | Consumed by |
-|------|----------|-------------|
-| Frame | `contract` (goals, constraints, criteria) | all steps |
-| Explore | `exploration_report` | planner, critic |
-| Plan | `plan` (strategy, phases, criteria) | critic, implementer, verifier |
-| Critic | `critic_report` (issues, strengths, signal) | critic-verifier |
-| Verify Critic | `verified_critic_report` (verified issues, signal) | decide, planner (next iter) |
-| Implement | `implementation_report` (files, deviations) | verifier |
-| Verify | `verify_report` (criteria status, confidence) | decide, planner (next iter) |
-| Pipeline end | `pipeline_trace` (all artifacts + timing + decisions) | post-mortem, learning log |
-
-## Rules
-
-- **Contract-first.** No work without testable success criteria.
-- **Critic before code.** Plan is challenged before implementation begins.
-- **External verification is ground truth.** Tests, types, builds — not reasoning.
-- **Plans follow** `reference/plans-and-exec-plans.md`.
-- **Engineering principles** from `dev:principles` apply to all steps.
-- **Escalate, don't auto-accept on stall.**
-- **Targeted re-explore only.** When critic signals `re-explore`, investigate the specific gap — do not restart full exploration.
-
-## Context Management
-
-On iteration 2+, compress previous iteration artifacts before starting the new iteration. See `OPERATING-RULES.md` for full retention priority and summarization rules.
-
-Key principles:
-- **Threshold-based**: compress when accumulated artifacts exceed 50% of available context
-- **Recency-based**: current iteration in full, previous iterations summarized
-- **Priority-based**: `contract` and current `plan` are never compressed; old `implementation_report` is dropped first
-- **Never alter identifiers**: commit hashes, file paths, UUIDs must survive compression intact
-
-## Observability
-
-At pipeline completion, the orchestrator produces a `pipeline_trace` recording:
-- Timestamp and duration for each step
-- All handoff artifacts (or summaries for iteration 2+)
-- Decision points and signals (critic signals, decide outcomes)
-- Iteration count, final disposition (accept/escalate), and total token estimate
-
-## Learning
-
-After a successful delivery, append new patterns discovered during the loop to `knowledge/planning-patterns.md` Learning Log. Record: what strategy worked, what the critic caught, what the verifier found, and any anti-pattern encountered.
+When changing this skill, apply `reference/skill-standards.md`, update representative eval prompts in `evals/evals.json` when behavior changes, and bump the plugin and skill versions according to `../../OPERATING-RULES.md`.

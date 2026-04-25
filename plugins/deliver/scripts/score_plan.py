@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""
-score_plan.py — Score a plan artifact on quality dimensions.
+"""Score a plan artifact on quality dimensions.
 
-Reads a YAML or JSON plan (planner_handoff format) from stdin or a file
-and scores it on completeness, feasibility, sequencing, and risk coverage.
+JSON input is always supported. YAML input is supported only when PyYAML is
+installed. The canonical dependency contract is each phase's depends_on list;
+there is no top-level dependencies list.
 
 Usage:
-    python score_plan.py plan.yaml
-    cat plan.yaml | python score_plan.py
+    python score_plan.py plan.json
+    python score_plan.py plan.yaml  # requires PyYAML
+    python score_plan.py < plan.json
 """
 
 import sys
@@ -54,7 +55,16 @@ def score_completeness(data):
     if isinstance(phases, list):
         for i, p in enumerate(phases):
             if isinstance(p, dict):
-                for sub in ["id", "name", "description", "acceptance_criteria"]:
+                for sub in [
+                    "id",
+                    "name",
+                    "depends_on",
+                    "files_affected",
+                    "description",
+                    "exact_changes",
+                    "acceptance_criteria",
+                    "verification_commands",
+                ]:
                     if not p.get(sub):
                         issues.append(f"Phase {i+1} missing: {sub}")
                         score -= 0.5
@@ -153,10 +163,9 @@ def score_dependency_clarity(data):
             if "depends_on" not in p:
                 issues.append(f"Phase '{p.get('name', '?')}' missing depends_on field")
                 score -= 2
-    deps = data.get("dependencies", [])
-    if not deps and len(phases) > 1:
-        issues.append("Multi-phase plan with no explicit dependency list")
-        score -= 2
+            elif not isinstance(p.get("depends_on"), list):
+                issues.append(f"Phase '{p.get('name', '?')}' depends_on must be a list")
+                score -= 2
     return max(0, min(10, round(score))), issues
 
 
@@ -229,7 +238,7 @@ def main():
     else:
         text = sys.stdin.read()
     if not text.strip():
-        print("Usage: score_plan.py <plan.yaml>", file=sys.stderr)
+        print("Usage: score_plan.py <plan.json|plan.yaml>", file=sys.stderr)
         sys.exit(1)
     plan = load_input(text)
     if not plan:

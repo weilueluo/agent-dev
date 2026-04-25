@@ -1,6 +1,7 @@
 ---
 name: codepen
 description: "Download CodePen projects (HTML, CSS, JS) and assets to local files. Use when a user provides a CodePen URL and wants to save, download, or replicate a pen's source code locally. Triggers on CodePen URLs (codepen.io), 'download codepen', 'save codepen', 'get codepen code', or any request to extract code from a CodePen link."
+version: 1.0.0
 license: Complete terms in LICENSE.txt
 ---
 
@@ -45,7 +46,7 @@ This skill ships with `extract.js` — a ready-to-run Playwright script located 
 Find its absolute path relative to this skill's directory, then run it:
 
 ```bash
-node /path/to/plugins/dev/skills/codepen-downloader/extract.js "https://codepen.io/{user}/pen/{id}"
+node /path/to/plugins/dev/skills/codepen/extract.js "https://codepen.io/{user}/pen/{id}"
 ```
 
 The script outputs JSON to stdout (logs go to stderr). It tries 5 extraction strategies in order:

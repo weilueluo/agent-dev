@@ -6,33 +6,33 @@
     "email": "luoweilue@gmail.com"
   },
   "metadata": {
-    "description": "Curated plugins for structured software delivery",
+    "description": "Curated plugins for structured agent workflows",
     "version": "1.0.0"
   },
   "plugins": [
     {
       "name": "deliver",
-      "description": "Adversarial delivery pipeline. Orchestrates exploration, planning, critic review, implementation, and verification — with specialist agents, quality gates, and explicit correction paths.",
-      "version": "6.0.1",
+      "description": "Generic issue-resolution loop. Orchestrates concise plan -> work -> review convergence with specialist agents, evidence gates, and escalation paths.",
+      "version": "7.4.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
       },
       "source": "./plugins/deliver",
       "category": "development",
-      "keywords": ["pipeline", "planning", "review", "testing", "delivery", "orchestration"]
+      "keywords": ["issue-resolution", "planning", "review", "testing", "convergence", "orchestration"]
     },
     {
       "name": "plan",
-      "description": "Transforms vague feature ideas into complete feature requests through structured clarification. The plan skill coordinates repository analysis, ambiguity detection, and iterative user clarification to produce fully resolved feature specifications with no open questions.",
-      "version": "1.1.0",
+      "description": "Transforms vague ideas into complete feature designs through structured clarification. The plan skill coordinates repository and external research, ambiguity detection, and iterative user clarification to produce fully resolved specifications with no open questions.",
+      "version": "2.0.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
       },
       "source": "./plugins/plan",
       "category": "development",
-      "keywords": ["planning", "feature-request", "clarification", "requirements", "specification"]
+      "keywords": ["planning", "feature-design", "clarification", "requirements", "specification"]
     },
     {
       "name": "chats",
@@ -69,18 +69,6 @@
       "source": "./plugins/documents",
       "category": "documents",
       "keywords": ["documents", "docx", "pdf", "pptx", "xlsx", "office", "word", "excel", "powerpoint"]
-    },
-    {
-      "name": "bugfix",
-      "description": "Structured bug resolution pipeline. Orchestrates intake, reproduction, root-cause diagnosis, fix application, verification, and systemic hardening — with specialist agents and quality gates.",
-      "version": "1.0.0",
-      "author": {
-        "name": "weilueluo",
-        "email": "luoweilue@gmail.com"
-      },
-      "source": "./plugins/bugfix",
-      "category": "development",
-      "keywords": ["bug", "debug", "fix", "regression", "error", "crash", "diagnosis", "testing"]
     }
   ]
 }

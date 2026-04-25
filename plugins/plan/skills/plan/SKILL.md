@@ -1,83 +1,67 @@
 ---
 name: plan
-description: "Transform a vague feature idea into a complete feature request. Analyzes the repository, detects ambiguity, asks targeted clarification questions, and produces a fully resolved specification with no open questions. Invocation: /plan:plan <idea>"
+description: "Transform vague ideas into complete feature designs. Analyzes the repository, detects ambiguity, asks targeted clarification questions, and produces a fully resolved specification with no open questions. Invocation: /plan:plan <idea>"
 version: 2.0.0
 ---
 
 # plan
 
-You are the coordinator. You stay in the main context, manage the decision ledger, orchestrate worker subagents, run the clarification loop, and produce the final output. **Do NOT fork into a subagent** — subagents cannot spawn subagents recursively.
+You are the feature-design coordinator. Stay in the main context, gather evidence, resolve ambiguity, and produce the final design. Do not implement code or create an implementation plan.
 
 ## Input
 
-`$ARGUMENTS` — a rough feature idea from the user.
+`$ARGUMENTS` - a high-level feature idea, problem statement, or product direction.
 
 ## Output
 
-A **complete feature request** — no open questions, no unresolved ambiguity, no implementation plan. Describes *what* to build and *why*, never *how*.
+A complete feature design with no open questions, no unresolved ambiguity, and mechanically verifiable acceptance criteria.
 
 ## Workflow
 
-Execute phases in order. Do not skip any. Do not produce the final output until Phase 5 confirms all material ambiguity is resolved.
+Execute the following phases in order. Return to earlier phases when new information changes scope, constraints, or framing.
 
-### Phase 1 — Understand Intent
+### Phase 1 - Understand
 
-Parse the user's idea. Normalize it into a clear requested outcome, identify the user's higher-level goal, note stated constraints and non-goals. Initialize the decision ledger (see `templates/decision-ledger.json`).
+Gather enough context to understand the full picture.
 
-If the idea is too vague to parse, ask for a one-sentence clarification before proceeding.
+- Parse the requested outcome, user goal, constraints, and non-goals.
+- Explore relevant repository files and any materials provided by the user.
+- Search current official sources or ecosystem references when external behavior matters.
+- Invoke appropriate skills for specialized materials or workflows.
+- Write and run ad hoc analysis scripts when they help clarify evidence.
 
-### Phase 2 — Research
+If the idea is too vague to parse, ask for clarification before proceeding.
 
-Run in parallel:
+### Phase 2 - Analysis
 
-1. **Repo** — Delegate to the **repo-researcher** agent with normalized outcome and constraints.
-2. **Online** — Use `web_search`/`web_fetch` for official docs, community discussions (Reddit, Stack Overflow, GitHub Discussions), and prior art in the ecosystem.
+Dissect the idea from multiple perspectives:
 
-Record all findings as evidence in the ledger.
+- Ambiguity - gaps, assumptions, missing requirements
+- Risks - constraints, edge cases, operational concerns
+- Framing - whether this solves the right problem
+- Testability - whether requirements are mechanically verifiable and automatable
+- Observability - whether behavior can be monitored, debugged, operated, and understood by future agents
 
-### Phase 3 — Analysis
+### Phase 3 - Clarification Loop
 
-Delegate to five agents **in parallel**:
-- **ambiguity-reviewer** — gaps, assumptions, missing requirements
-- **risk-reviewer** — risks, constraints, edge cases
-- **problem-framing-reviewer** — is this solving the right problem?
-- **testability-reviewer** — are requirements mechanically verifiable?
-- **observability-reviewer** — can the feature be monitored, debugged, operated?
+Ask targeted questions until all material ambiguity is resolved.
 
-If wrong-problem framing is detected, surface it to the user immediately.
+1. Collect, deduplicate, and rank unresolved questions by impact.
+2. Ask concise batches of high-value questions.
+3. Record answers, decisions, and accepted assumptions.
+4. Return to Phase 1 when answers introduce new scope, links, materials, or direction changes.
+5. Continue until no material ambiguity remains.
 
-### Phase 4 — Clarification Loop
+### Phase 4 - Review
 
-Mandatory. Do not skip.
+Review the design before output. Return to previous phases if any gap remains.
 
-1. Collect all unresolved questions from worker outputs
-2. Deduplicate — merge questions asking the same thing differently
-3. Prioritize — **must-ask** (changes scope/behavior) vs **should-ask** (edge cases, NFRs) vs **can-default** (trivial)
-4. Apply silent defaults for can-default items, record in ledger
-5. Batch must-ask and should-ask questions (3–7 per round), ask the user
-6. Record answers, update ledger
-7. If answers change scope significantly, re-run relevant workers
-8. Repeat until no material questions remain (max 5 rounds)
+- No TODO/TBD placeholders
+- No open questions
+- No implementation plan or task breakdown
+- Requirements and acceptance criteria are testable
+- Observability and debugging needs are explicit
 
-### Phase 5 — Final Review
+### Phase 5 - Output
 
-Review the complete ledger. Verify every material question is resolved and the outcome still makes sense. If gaps remain, return to Phase 4.
-
-### Phase 6 — Output
-
-Generate the complete feature request from the ledger. Every claim must trace to ledger evidence or decisions. The output should cover at minimum: problem, user goal, current state, proposed feature, requirements, non-goals, constraints, risks, edge cases, acceptance criteria, and decisions made.
-
-Before presenting, verify: no TBD/TODO, no open questions, no implementation plan, all requirements are testable, all acceptance criteria are verifiable.
-
-## Standards
-
-Follow `dev:principles`. The decision ledger (`templates/decision-ledger.json`) is the source of truth — extend it with domain-specific fields as needed.
-
-## Rules
-
-- No novelty claim without repository evidence
-- No implementation plans — specify *what*, never *how*
-- No unresolved questions in the final output
-- The clarification loop is mandatory
-- Detect and surface wrong-problem framing early
-- If the user declines critical questions, note assumptions explicitly
+Generate the complete feature design. Cover the problem, user goal, current context and evidence, proposed behavior, requirements, non-goals, constraints, risks, edge cases, acceptance criteria, and explicit decisions or assumptions.

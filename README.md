@@ -26,11 +26,10 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 
 | Plugin | Version | Description |
 |--------|---------|-------------|
-| [`deliver`](plugins/deliver/) | 6.0.1 | Adversarial delivery pipeline — exploration, planning, critic review, implementation, verification |
-| [`bugfix`](plugins/bugfix/) | 1.0.0 | Structured bug resolution — intake, reproduction, root-cause diagnosis, fix, verification, systemic hardening |
-| [`plan`](plugins/plan/) | 1.1.0 | Transforms vague feature ideas into complete feature requests through structured clarification |
+| [`deliver`](plugins/deliver/) | 7.4.0 | Generic issue-resolution loop — plan, work, review, and iterate until convergence |
+| [`plan`](plugins/plan/) | 2.0.0 | Transforms vague ideas into complete feature designs through structured clarification |
 | [`chats`](plugins/chats/) | 1.1.0 | Chat platform integrations — WhatsApp messaging and WeChat local message search |
-| [`dev`](plugins/dev/) | 1.1.0 | Core engineering principles for AI-maintained codebases, production-grade frontend interfaces, and CodePen integration |
+| [`dev`](plugins/dev/) | 1.2.0 | Core engineering principles for AI-maintained codebases, production-grade frontend interfaces, and CodePen integration |
 | [`documents`](plugins/documents/) | 1.1.0 | Document processing skills for Word, PDF, PowerPoint, Excel, and collaborative co-authoring workflows |
 
 ## Repository Structure
@@ -43,10 +42,10 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 │   └── references/      # Industry references and source material
 ├── plugins/             # Agent skill plugins
 │   ├── chats/           # Chat platform integrations (WhatsApp, WeChat)
-│   ├── deliver/         # Adversarial delivery pipeline
+│   ├── deliver/         # Generic issue-resolution loop
 │   ├── dev/             # Engineering principles, frontend, CodePen
 │   ├── documents/       # Document processing skills
-│   └── plan/            # Feature request clarification
+│   └── plan/            # Feature design clarification
 ├── external_plugins/    # Third-party plugins and integrations
 └── .github/             # GitHub & marketplace config
 ```

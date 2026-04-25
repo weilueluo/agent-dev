@@ -1,7 +1,7 @@
 ---
 title: Architecture
 description: High-level architecture of the agent-dev skills marketplace — plugin structure, skill loading, agent delegation, and marketplace distribution.
-last_updated: 2026-04-05
+last_updated: 2026-04-25
 ---
 
 # Architecture
@@ -10,7 +10,7 @@ last_updated: 2026-04-05
 
 agent-dev is a cross-platform agent skills marketplace. Plugins provide skills (domain knowledge and workflows) and agents (specialist workers) to AI-powered CLI tools — Copilot CLI, Claude Code, Codex CLI, and Gemini CLI.
 
-The architecture maps directly to patterns described in the [industry references](references/industry-references.md): lean agent-facing docs, skills lazy-loading, adversarial review, and file-based state.
+The architecture maps directly to patterns described in the [industry references](references/industry-references.md): lean agent-facing docs, skills lazy-loading, plan-work-review loops, and file-based state.
 
 ## Core Concepts
 
@@ -67,7 +67,7 @@ The repo's plugins implement several of the [five control flow patterns](referen
 | Prompt Chaining | Plan skill: intake → clarification → generation |
 | Routing | Skill descriptors route to the right skill per task |
 | Orchestrator-Workers | Deliver: orchestrator delegates to explorer, planner, critic, implementer, verifier |
-| Evaluator-Optimizer | Deliver loop: Plan → Critic → revise cycle |
+| Evaluator-Optimizer | Deliver loop: Plan -> Work -> Review -> revise cycle |
 | Parallelization | Deliver: multiple explore agents in parallel |
 
 ## Context Architecture
@@ -102,7 +102,7 @@ agent-dev/
 │   ├── architecture.md                # This file
 │   └── references/                    # Industry references
 ├── plugins/
-│   ├── deliver/                       # Adversarial delivery pipeline
+│   ├── deliver/                       # Generic issue-resolution loop
 │   │   ├── AGENTS.md                  #   Plugin TOC
 │   │   ├── OPERATING-RULES.md         #   Stop conditions, context management
 │   │   ├── plugin.json                #   Plugin metadata
@@ -111,7 +111,7 @@ agent-dev/
 │   │   ├── agents/                    #   explorer, planner, critic, etc.
 │   │   ├── knowledge/                 #   Planning patterns, eval guide
 │   │   └── scripts/                   #   Plan scoring, DAG rendering
-│   ├── plan/                          # Feature request clarification
+│   ├── plan/                          # Feature design clarification
 │   ├── dev/                           # Engineering principles, frontend
 │   ├── chats/                         # Chat platform integrations
 │   └── documents/                     # Document processing
@@ -139,5 +139,5 @@ These are drawn from [industry practice](references/industry-references.md) and 
 - [Industry References](references/industry-references.md) — Source blog posts and reports
 - [Agent Engineering Post](references/x-post-agent-engineering.md) — Comprehensive synthesis
 - [dev:principles](../plugins/dev/skills/principles/SKILL.md) — Canonical engineering principles
-- [deliver AGENTS.md](../plugins/deliver/AGENTS.md) — Delivery pipeline architecture
+- [deliver AGENTS.md](../plugins/deliver/AGENTS.md) — Issue-resolution loop architecture
 - [deliver OPERATING-RULES.md](../plugins/deliver/OPERATING-RULES.md) — Operational rules and context management

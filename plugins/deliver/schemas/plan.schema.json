@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-dev.local/plugins/deliver/schemas/plan.schema.json",
+  "title": "Deliver Plan",
+  "type": "object",
+  "required": [
+    "planning_mode",
+    "chosen_strategy",
+    "alternatives_considered",
+    "execution_phases",
+    "acceptance_criteria",
+    "non_goals",
+    "risk_mitigations",
+    "rollback_notes"
+  ],
+  "properties": {
+    "planning_mode": { "type": "string", "minLength": 1 },
+    "chosen_strategy": {
+      "type": "object",
+      "required": ["name", "summary", "rationale"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "summary": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "alternatives_considered": { "type": "array" },
+    "execution_phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "depends_on",
+          "files_affected",
+          "description",
+          "exact_changes",
+          "acceptance_criteria",
+          "verification_commands"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "files_affected": { "type": "array" },
+          "description": { "type": "string", "minLength": 1 },
+          "exact_changes": { "type": "array" },
+          "acceptance_criteria": { "type": "array" },
+          "verification_commands": { "type": "array" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "acceptance_criteria": { "type": "array" },
+    "non_goals": { "type": "array" },
+    "risk_mitigations": { "type": "array" },
+    "rollback_notes": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": true
+}

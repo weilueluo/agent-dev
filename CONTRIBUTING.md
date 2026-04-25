@@ -122,6 +122,16 @@ This supports structured, cascaded knowledge retrieval from AGENTS.md.
 
 Always update all three locations when applicable. Drift between these is a common source of bugs.
 
+### Validation
+
+Before submitting plugin or skill metadata changes, run:
+
+```powershell
+python tools\validate-skills.py
+```
+
+This checks that plugin versions in `README.md` and `.github/plugin/marketplace.json` match the authoritative `plugin.json` files, every `SKILL.md` has valid frontmatter including `version`, and known bundled skill references point to existing files.
+
 ## Quality Bar
 
 ### Do
@@ -129,7 +139,7 @@ Always update all three locations when applicable. Drift between these is a comm
 - Design tools for agent goals (ACI), not API wrappers ([source](docs/references/x-post-agent-engineering.md#4-tool-design))
 - Include structured error messages with recovery suggestions
 - Write acceptance criteria that are mechanically verifiable
-- Test with the deliver pipeline for non-trivial changes
+- Test with the deliver issue-resolution loop for non-trivial changes
 - Keep AGENTS.md stable (prompt-cache friendly)
 
 ### Don't (Anti-Patterns)
@@ -153,8 +163,9 @@ Source: [Agent Engineering Anti-Patterns](docs/references/x-post-agent-engineeri
 
 1. Create your plugin under `plugins/{name}/` following the structure above
 2. Add an entry to `.github/plugin/marketplace.json`
-3. Run the deliver pipeline to validate (`/skill deliver`)
-4. Open a PR with a clear description of what the plugin does and who it's for
+3. Run the skill integrity validator: `python tools\validate-skills.py`
+4. Run the deliver issue-resolution loop to validate (`/skill deliver`)
+5. Open a PR with a clear description of what the plugin does and who it's for
 
 ## References
 

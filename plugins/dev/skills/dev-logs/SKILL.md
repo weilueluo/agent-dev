@@ -1,6 +1,7 @@
 ---
 name: dev-logs
 description: "Read and filter dev server logs from .dev.log files. Use when the user mentions dev logs, server logs, dev server output, check logs, what errors, recent build or startup errors, runtime exceptions, or webhook events. Also use when debugging server-side issues."
+version: 1.0.0
 ---
 
 # Dev Server Logs

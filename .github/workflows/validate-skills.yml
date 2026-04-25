@@ -1,0 +1,40 @@
+name: Validate skill metadata
+
+on:
+  pull_request:
+    paths:
+      - ".github/plugin/marketplace.json"
+      - ".github/workflows/validate-skills.yml"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "plugins/**/README.md"
+      - "plugins/**/SKILL.md"
+      - "plugins/*/plugin.json"
+      - "tools/validate-skills.py"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/plugin/marketplace.json"
+      - ".github/workflows/validate-skills.yml"
+      - "CONTRIBUTING.md"
+      - "README.md"
+      - "plugins/**/README.md"
+      - "plugins/**/SKILL.md"
+      - "plugins/*/plugin.json"
+      - "tools/validate-skills.py"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run skill integrity validator
+        run: python tools/validate-skills.py

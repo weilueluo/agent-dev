@@ -6,7 +6,7 @@
       "steps": [
         {
           "type": "context",
-          "message": "Deliver plugin active. Use the deliver skill for structured planning and validation. Read AGENTS.md for loop structure and rules."
+          "message": "Deliver plugin active. Use the deliver skill for issues that need a plan -> work -> review convergence loop. Read AGENTS.md for loop structure and rules."
         }
       ]
     },
@@ -19,7 +19,7 @@
       "steps": [
         {
           "type": "context",
-          "message": "File modified. If executing in the deliver loop: track this change in the implementation record (files_changed). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
+          "message": "File modified. If executing in the deliver loop: track this change in the work report (files_changed or artifacts_changed). If deviating from the plan, document the deviation. Run project formatters/linters if configured."
         }
       ]
     },
@@ -42,7 +42,7 @@
             "**/migrations/versions/**"
           ],
           "action": "warn",
-          "message": "Protected path detected. This file is guarded by deliver rules (lock files, secrets, generated files, vendored code). Modification requires explicit plan acknowledgment."
+          "message": "Protected path detected. This file is guarded by deliver rules (lock files, secrets, generated files, vendored code). Modification requires explicit human approval plus structured protected_action_ack fields: path, action, reason, risk, approval_source."
         }
       ]
     }

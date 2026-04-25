@@ -1,6 +1,7 @@
 ---
 name: principles
 description: "Core development principles for AI-maintained codebases. This skill should be read before every task to establish engineering standards. Applies to all coding, architecture, and review work."
+version: 1.0.0
 ---
 
 # Development Principles
