@@ -47,16 +47,28 @@
       "keywords": ["chat", "messaging", "whatsapp", "wechat", "contacts", "groups", "send", "search"]
     },
     {
+      "name": "google",
+      "description": "Google Workspace integrations. Provides Gmail and Drive remote MCP servers for mail search, threads, drafts, labels, file search, file content, and file metadata.",
+      "version": "1.0.0",
+      "author": {
+        "name": "weilueluo",
+        "email": "luoweilue@gmail.com"
+      },
+      "source": "./plugins/google",
+      "category": "productivity",
+      "keywords": ["google", "workspace", "gmail", "drive", "mail", "email", "files", "docs", "mcp", "threads", "drafts", "labels"]
+    },
+    {
       "name": "dev",
-      "description": "Development skills — core engineering principles for AI-maintained codebases, production-grade frontend interfaces, CodePen integration, dev server log reading, and browser console log capture.",
-      "version": "1.2.0",
+      "description": "Development skills — core engineering principles for AI-maintained codebases, production-grade frontend interfaces, CodePen integration, recursive site download for AI ingestion, dev server log reading, browser console log capture, and Playwright MCP browser automation.",
+      "version": "1.4.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
       },
       "source": "./plugins/dev",
       "category": "dev",
-      "keywords": ["dev", "frontend", "design", "ui", "web", "logs", "server", "debugging", "browser", "console", "cdp"]
+      "keywords": ["dev", "frontend", "design", "ui", "web", "download", "site", "crawl", "mirror", "markdown", "corpus", "media", "logs", "server", "debugging", "browser", "console", "cdp", "playwright", "mcp", "automation"]
     },
     {
       "name": "documents",

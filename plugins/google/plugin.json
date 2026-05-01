@@ -1,0 +1,14 @@
+{
+  "name": "google",
+  "description": "Google Workspace integrations. Provides remote MCP access for Gmail and Drive: search and retrieve mail, manage drafts and labels, search files, read file content, and inspect file metadata.",
+  "version": "1.0.0",
+  "author": {
+    "name": "weilueluo",
+    "email": "luoweilue@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["google", "workspace", "gmail", "drive", "mail", "email", "files", "docs", "mcp", "threads", "drafts", "labels"],
+  "category": "productivity",
+  "skills": "skills/",
+  "mcpServers": ".mcp.json"
+}

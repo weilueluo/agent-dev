@@ -1,0 +1,14 @@
+{
+  "name": "site-download-skill-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Website mirroring and AI-ingest corpus scripts for the site-download skill",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node bin/site-download.mjs",
+    "test": "node --test"
+  }
+}

@@ -1,7 +1,7 @@
 ---
 title: Architecture
 description: High-level architecture of the agent-dev skills marketplace — plugin structure, skill loading, agent delegation, and marketplace distribution.
-last_updated: 2026-04-25
+last_updated: 2026-05-01
 ---
 
 # Architecture
@@ -114,6 +114,7 @@ agent-dev/
 │   ├── plan/                          # Feature design clarification
 │   ├── dev/                           # Engineering principles, frontend
 │   ├── chats/                         # Chat platform integrations
+│   ├── google/                        # Google Workspace integrations and MCP servers
 │   └── documents/                     # Document processing
 ├── external_plugins/                  # Third-party plugins
 ├── tools/                             # Shared tooling
