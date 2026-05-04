@@ -34,7 +34,7 @@ All work follows `dev:principles`. Read before every task.
 |--------|-----------|-------------|
 | [`deliver`](plugins/deliver/) | [AGENTS.md](plugins/deliver/AGENTS.md) | Generic issue-resolution loop — plan, work, review, converge |
 | [`plan`](plugins/plan/) | [AGENTS.md](plugins/plan/AGENTS.md) | Transforms vague ideas into complete feature designs |
-| [`dev`](plugins/dev/) | [AGENTS.md](plugins/dev/AGENTS.md) | Engineering principles, frontend design, CodePen, browser logs, Playwright MCP |
+| [`dev`](plugins/dev/) | [AGENTS.md](plugins/dev/AGENTS.md) | Engineering principles, frontend design, CodePen, browser logs, Playwright and platform MCP |
 | [`chats`](plugins/chats/) | [AGENTS.md](plugins/chats/AGENTS.md) | WhatsApp messaging, WeChat local search |
 | [`google`](plugins/google/) | [AGENTS.md](plugins/google/AGENTS.md) | Google Workspace MCP for Gmail and Drive |
 | [`documents`](plugins/documents/) | [AGENTS.md](plugins/documents/AGENTS.md) | Word, PDF, PowerPoint, Excel processing |

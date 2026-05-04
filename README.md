@@ -30,7 +30,7 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 | [`plan`](plugins/plan/) | 2.0.0 | Transforms vague ideas into complete feature designs through structured clarification |
 | [`chats`](plugins/chats/) | 1.1.0 | Chat platform integrations — WhatsApp messaging and WeChat local message search |
 | [`google`](plugins/google/) | 1.0.0 | Google Workspace integrations — Gmail and Drive remote MCP |
-| [`dev`](plugins/dev/) | 1.4.0 | Core engineering principles, frontend interfaces, CodePen integration, recursive site download, and Playwright MCP browser automation |
+| [`dev`](plugins/dev/) | 1.5.0 | Core engineering principles, frontend interfaces, CodePen integration, recursive site download, Playwright MCP browser automation, and skill-wrapped Supabase/Vercel/GitHub/Railway MCP |
 | [`documents`](plugins/documents/) | 1.1.0 | Document processing skills for Word, PDF, PowerPoint, Excel, and collaborative co-authoring workflows |
 
 ## Repository Structure

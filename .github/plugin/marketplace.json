@@ -60,15 +60,15 @@
     },
     {
       "name": "dev",
-      "description": "Development skills — core engineering principles for AI-maintained codebases, production-grade frontend interfaces, CodePen integration, recursive site download for AI ingestion, dev server log reading, browser console log capture, and Playwright MCP browser automation.",
-      "version": "1.4.0",
+      "description": "Development skills — core engineering principles for AI-maintained codebases, production-grade frontend interfaces, CodePen integration, recursive site download for AI ingestion, dev server log reading, browser console log capture, Playwright MCP browser automation, and skill-wrapped platform MCP for Supabase, Vercel, GitHub, and Railway.",
+      "version": "1.5.0",
       "author": {
         "name": "weilueluo",
         "email": "luoweilue@gmail.com"
       },
       "source": "./plugins/dev",
       "category": "dev",
-      "keywords": ["dev", "frontend", "design", "ui", "web", "download", "site", "crawl", "mirror", "markdown", "corpus", "media", "logs", "server", "debugging", "browser", "console", "cdp", "playwright", "mcp", "automation"]
+      "keywords": ["dev", "frontend", "design", "ui", "web", "download", "site", "crawl", "mirror", "markdown", "corpus", "media", "logs", "server", "debugging", "browser", "console", "cdp", "playwright", "mcp", "automation", "supabase", "vercel", "github", "railway", "workspace", "project"]
     },
     {
       "name": "documents",

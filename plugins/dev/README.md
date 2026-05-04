@@ -1,10 +1,10 @@
 # Dev Plugin
 
-Development skills for building production-grade frontend interfaces, downloading sites for AI ingestion, debugging local development workflows, and registering Playwright MCP browser automation.
+Development skills for building production-grade frontend interfaces, downloading sites for AI ingestion, debugging local development workflows, registering Playwright MCP browser automation, and wrapping platform MCP servers for multi-project workflows.
 
 ## MCP servers
 
-The dev plugin registers Playwright MCP from `.mcp.json`:
+The dev plugin registers Playwright plus platform MCP servers from `.mcp.json`. Supabase, Vercel, GitHub, and Railway are intentionally wrapped by the `platform-mcp` skill; do not use their MCP tools directly from generic task flow.
 
 ```json
 {
@@ -18,12 +18,28 @@ The dev plugin registers Playwright MCP from `.mcp.json`:
       "args": [
         "@playwright/mcp@latest"
       ]
+    },
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "railway": {
+      "type": "http",
+      "url": "https://mcp.railway.com"
     }
   }
 }
 ```
 
-Node.js 18 or newer is required when the MCP client starts the server.
+Node.js 18 or newer is required when the MCP client starts the local Playwright server. The platform MCP servers use remote OAuth flows; keep tokens and project-specific IDs out of repository files unless explicitly requested.
 
 ## Skills
 
@@ -38,6 +54,11 @@ Recursively download a website into an AI-ingest bundle with offline mirror file
 **Triggers:** Crawling, mirroring, archiving, scraping docs, downloading pages/assets/images/videos, or converting a URL/site to Markdown or JSONL.
 
 **Modes:** Public mode crawls same-origin pages and downloads referenced cross-origin resources through a robots-aware fetcher. Authenticated mode attaches to an already-running Chrome/Edge CDP session for bounded same-origin page capture and screenshots without exporting browser cookies, storage, tokens, or profile data.
+
+### platform-mcp
+Wrap Supabase, Vercel, GitHub, and Railway MCP usage with provider routing, multi-project/workspace target resolution, and safety rules before any provider MCP tool is called.
+
+**Triggers:** Managing provider projects, deployments, repositories, environments, variables, logs, domains, database schema, migrations, or provider docs through MCP.
 
 **Validation:**
 ```powershell

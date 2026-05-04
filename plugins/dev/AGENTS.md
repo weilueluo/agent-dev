@@ -1,6 +1,6 @@
 # Dev
 
-Development skills — engineering principles, frontend design, CodePen integration, site download, debugging utilities, and Playwright MCP browser automation.
+Development skills — engineering principles, frontend design, CodePen integration, site download, debugging utilities, Playwright MCP browser automation, and skill-wrapped platform MCP.
 
 ## Engineering Principles
 
@@ -14,7 +14,8 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - `skills/site-download` — Recursive website mirror and AI-ingest corpus generator
 - `skills/dev-logs` — Dev server log reader and setup assistant
 - `skills/browser-logs` — Browser console log capture via Chrome DevTools Protocol
-- `.mcp.json` — Registers the Playwright MCP server for browser automation
+- `skills/platform-mcp` — Wrapper for Supabase, Vercel, GitHub, and Railway MCP usage
+- `.mcp.json` — Registers Playwright plus Supabase, Vercel, GitHub, and Railway MCP servers
 
 ## Operational Rules
 
@@ -24,3 +25,4 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - **CodePen uses Playwright** — never raw HTTP requests (Cloudflare protection).
 - **Site download respects boundaries** — obey robots.txt, keep crawls bounded, and never export browser cookies/storage/tokens.
 - **Playwright MCP is plugin-owned** — keep the browser automation MCP configuration in `.mcp.json` so installing the dev plugin registers it automatically.
+- **Platform MCP is skill-wrapped** — invoke `platform-mcp` before using Supabase, Vercel, GitHub, or Railway MCP tools; resolve the correct project/workspace before acting.

@@ -1,13 +1,13 @@
 {
   "name": "dev",
-  "description": "Development skills — core engineering principles, frontend interfaces, CodePen integration, site download for AI ingestion, dev server log reading, browser console log capture, and Playwright MCP browser automation.",
-  "version": "1.4.0",
+  "description": "Development skills — core engineering principles, frontend interfaces, CodePen integration, site download for AI ingestion, dev server log reading, browser console log capture, Playwright MCP browser automation, and skill-wrapped platform MCP for Supabase, Vercel, GitHub, and Railway.",
+  "version": "1.5.0",
   "author": {
     "name": "weilueluo",
     "email": "luoweilue@gmail.com"
   },
   "license": "MIT",
-  "keywords": ["dev", "frontend", "design", "ui", "web", "codepen", "download", "site", "crawl", "mirror", "markdown", "corpus", "media", "logs", "server", "debugging", "browser", "console", "cdp", "playwright", "mcp", "automation"],
+  "keywords": ["dev", "frontend", "design", "ui", "web", "codepen", "download", "site", "crawl", "mirror", "markdown", "corpus", "media", "logs", "server", "debugging", "browser", "console", "cdp", "playwright", "mcp", "automation", "supabase", "vercel", "github", "railway", "workspace", "project"],
   "category": "dev",
   "skills": "skills/",
   "hooks": "hooks.json",
