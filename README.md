@@ -28,9 +28,9 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 |--------|---------|-------------|
 | [`deliver`](plugins/deliver/) | 7.4.0 | Generic issue-resolution loop — plan, work, review, and iterate until convergence |
 | [`plan`](plugins/plan/) | 2.0.0 | Transforms vague ideas into complete feature designs through structured clarification |
-| [`chats`](plugins/chats/) | 1.1.0 | Chat platform integrations — WhatsApp messaging and WeChat local message search |
-| [`google`](plugins/google/) | 1.0.0 | Google Workspace integrations — Gmail and Drive remote MCP |
-| [`dev`](plugins/dev/) | 1.5.0 | Core engineering principles, frontend interfaces, CodePen integration, recursive site download, Playwright MCP browser automation, and skill-wrapped Supabase/Vercel/GitHub/Railway MCP |
+| [`chats`](plugins/chats/) | 1.2.1 | Chat platform integrations — WhatsApp messaging and WeChat local message search |
+| [`google`](plugins/google/) | 2.0.0 | Google Workspace integrations — on-demand Go CLI wrapper for Gmail and Drive |
+| [`dev`](plugins/dev/) | 2.0.0 | Core engineering principles, frontend interfaces, CodePen integration, recursive site download, OCR text extraction, Playwright MCP browser automation, and skill-wrapped Supabase/Vercel/Railway CLIs |
 | [`documents`](plugins/documents/) | 1.1.0 | Document processing skills for Word, PDF, PowerPoint, Excel, and collaborative co-authoring workflows |
 
 ## Repository Structure
@@ -43,7 +43,7 @@ Cross-platform agent skills for AI-powered CLI tools — compatible with Copilot
 │   └── references/      # Industry references and source material
 ├── plugins/             # Agent skill plugins
 │   ├── chats/           # Chat platform integrations (WhatsApp, WeChat)
-│   ├── google/          # Google Workspace integrations (Gmail and Drive MCP)
+│   ├── google/          # Google Workspace integrations (Gmail and Drive CLI)
 │   ├── deliver/         # Generic issue-resolution loop
 │   ├── dev/             # Engineering principles, frontend, CodePen
 │   ├── documents/       # Document processing skills

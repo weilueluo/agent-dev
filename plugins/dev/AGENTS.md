@@ -1,6 +1,6 @@
 # Dev
 
-Development skills — engineering principles, frontend design, CodePen integration, site download, debugging utilities, Playwright MCP browser automation, and skill-wrapped platform MCP.
+Development skills — engineering principles, frontend design, CodePen integration, site download, OCR text extraction, debugging utilities, Playwright MCP browser automation, and provider CLI skills.
 
 ## Engineering Principles
 
@@ -12,10 +12,15 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - `skills/frontend-design` — Production-grade frontend interfaces
 - `skills/codepen` — CodePen project downloader
 - `skills/site-download` — Recursive website mirror and AI-ingest corpus generator
+- `skills/ocr-text-extraction` — OCR and document-parsing library selection for extracting text
 - `skills/dev-logs` — Dev server log reader and setup assistant
 - `skills/browser-logs` — Browser console log capture via Chrome DevTools Protocol
-- `skills/platform-mcp` — Wrapper for Supabase, Vercel, GitHub, and Railway MCP usage
-- `.mcp.json` — Registers Playwright plus Supabase, Vercel, GitHub, and Railway MCP servers
+- `skills/git-ship` — One-step commit + push + monitor-CI for "commit and push, monitor cicd" style requests
+- `skills/platform-mcp` — Compatibility router for platform provider work
+- `skills/supabase-cli` — Supabase CLI workflows
+- `skills/vercel-cli` — Vercel CLI workflows
+- `skills/railway-cli` — Railway CLI workflows
+- `.mcp.json` — Registers Playwright and GitHub MCP servers
 
 ## Operational Rules
 
@@ -24,5 +29,7 @@ All work follows the engineering principles in `dev:principles`. Read before eve
 - **Creative variety.** Never converge on the same fonts, colors, or layouts across generations.
 - **CodePen uses Playwright** — never raw HTTP requests (Cloudflare protection).
 - **Site download respects boundaries** — obey robots.txt, keep crawls bounded, and never export browser cookies/storage/tokens.
+- **OCR chooses one tool first** — select the lightest OCR/document parser that fits quality, language, and structure needs; do not run every engine by default.
 - **Playwright MCP is plugin-owned** — keep the browser automation MCP configuration in `.mcp.json` so installing the dev plugin registers it automatically.
-- **Platform MCP is skill-wrapped** — invoke `platform-mcp` before using Supabase, Vercel, GitHub, or Railway MCP tools; resolve the correct project/workspace before acting.
+- **Git ship is opt-in only** — only run `git-ship` when the user explicitly asks ("commit and push", "monitor cicd", etc.); never push automatically as a side effect of another task.
+- **Provider CLIs are skill-wrapped** — invoke the Supabase, Vercel, or Railway CLI skill before provider CLI work; resolve the correct project/workspace before acting.

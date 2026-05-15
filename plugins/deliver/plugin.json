@@ -8,8 +8,5 @@
   },
   "license": "MIT",
   "keywords": ["issue-resolution", "planning", "review", "testing", "convergence", "orchestration"],
-  "category": "development",
-  "agents": "agents/",
-  "skills": "skills/",
-  "hooks": "hooks.json"
+  "category": "development"
 }

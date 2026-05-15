@@ -1,12 +1,13 @@
 {
   "name": "wechat-skill-scripts",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "WeChat desktop DB importer, search, and media lookup scripts for the wechat skill",
   "main": "wechat.mjs",
   "scripts": {
-    "start": "node wechat.mjs"
+    "start": "node wechat.mjs",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^11.0.0",

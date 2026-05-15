@@ -42,6 +42,15 @@ export function closeDb() {
 }
 
 function migrate(db) {
+  createSchema(db);
+}
+
+/**
+ * Create the full schema (messages table, indexes, FTS5 mirror, imports table).
+ * Idempotent — safe to call repeatedly, also exported so tests can build a
+ * production-shape DB without going through the openDb() singleton.
+ */
+export function createSchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS messages (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,6 +76,8 @@ function migrate(db) {
     CREATE INDEX IF NOT EXISTS idx_messages_type ON messages(type);
     CREATE INDEX IF NOT EXISTS idx_messages_source_id ON messages(source_id);
   `);
+
+  ensureUniqueSourceIndex(db);
 
   // FTS5 virtual table for full-text search
   const hasFts = db.prepare(
@@ -114,31 +125,96 @@ function migrate(db) {
 }
 
 /**
+ * Create the unique (source_id, source_db) index used for idempotent inserts.
+ * If pre-existing duplicates block creation, dedupe (keep lowest id) and retry.
+ * Exported so callers can run it explicitly after a custom import path; the
+ * normal `openDb()` path calls it during migration.
+ */
+export function ensureUniqueSourceIndex(db) {
+  const sql = `CREATE UNIQUE INDEX IF NOT EXISTS uniq_messages_source ON messages(source_id, source_db) WHERE source_id IS NOT NULL AND source_db IS NOT NULL`;
+  try {
+    db.exec(sql);
+    return { dedupedRows: 0 };
+  } catch (err) {
+    if (!/UNIQUE constraint failed/i.test(err.message)) throw err;
+  }
+  // Fallback: drop dupes (keep lowest id), retry. Bound the work in a tx.
+  const dedupe = db.prepare(`
+    DELETE FROM messages
+    WHERE id NOT IN (
+      SELECT MIN(id) FROM messages
+      WHERE source_id IS NOT NULL AND source_db IS NOT NULL
+      GROUP BY source_id, source_db
+    )
+    AND source_id IS NOT NULL AND source_db IS NOT NULL
+  `);
+  const result = db.transaction(() => dedupe.run())();
+  db.exec(sql);
+  return { dedupedRows: result.changes };
+}
+
+/**
  * Insert a batch of messages efficiently using a transaction.
- * Skips duplicates based on source_id + source_db.
+ *
+ * Two-pass dedupe semantics:
+ *   1. INSERT OR IGNORE on the (source_id, source_db) partial unique index —
+ *      brand-new rows land here and count toward `inserted`.
+ *   2. For rows that conflicted, if the incoming row provides a non-null
+ *      `sender_id` and the stored row's `sender_id` is still NULL, we UPDATE
+ *      `sender` and `sender_id` in place. These count toward `healed`.
+ *      Everything else counts toward `skipped`.
+ *
+ * Heal exists because earlier importer versions stored group messages with
+ * `sender_id=NULL` (BytesExtra protobuf parsing was missing/buggy). A plain
+ * INSERT OR IGNORE on re-import would skip them forever; this lets a refresh
+ * with a now-working parser repair stale rows. The heal predicate is scoped
+ * deliberately tight — only NULL → non-null upgrades, never overwrites — so
+ * already-resolved rows are never disturbed.
+ *
+ * Invariant: inserted + healed + skipped === messages.length.
+ *
+ * Rows with a NULL source_id or source_db fall through the partial index and
+ * are always inserted; callers that care about idempotency must populate both.
  */
 export function insertMessages(db, messages) {
   const insert = db.prepare(`
-    INSERT INTO messages (source_id, timestamp, sender, sender_id, room, room_id, type, text, filename, mime_type, media_path, media_size, source_db)
+    INSERT OR IGNORE INTO messages (source_id, timestamp, sender, sender_id, room, room_id, type, text, filename, mime_type, media_path, media_size, source_db)
     VALUES (@source_id, @timestamp, @sender, @sender_id, @room, @room_id, @type, @text, @filename, @mime_type, @media_path, @media_size, @source_db)
   `);
 
-  const checkDup = db.prepare(
-    'SELECT 1 FROM messages WHERE source_id = ? AND source_db = ?'
-  );
+  const heal = db.prepare(`
+    UPDATE messages
+       SET sender = @sender, sender_id = @sender_id
+     WHERE source_id = @source_id
+       AND source_db = @source_db
+       AND sender_id IS NULL
+  `);
 
   const tx = db.transaction((msgs) => {
     let inserted = 0;
     let skipped = 0;
+    let healed = 0;
     for (const msg of msgs) {
-      if (msg.source_id && msg.source_db) {
-        const dup = checkDup.get(msg.source_id, msg.source_db);
-        if (dup) { skipped++; continue; }
+      const result = insert.run(msg);
+      if (result.changes > 0) {
+        inserted++;
+        continue;
       }
-      insert.run(msg);
-      inserted++;
+      // Conflict path. Try to heal NULL sender_id rows when we now have a real one.
+      if (
+        msg.sender_id != null &&
+        msg.source_id != null &&
+        msg.source_db != null
+      ) {
+        const healResult = heal.run(msg);
+        if (healResult.changes > 0) {
+          healed++;
+          continue;
+        }
+      }
+      skipped++;
     }
-    return { inserted, skipped };
+    return { inserted, skipped, healed };
   });
 
   return tx(messages);

@@ -42,6 +42,8 @@ Use the full loop for issues with meaningful uncertainty, multiple steps, cross-
 
 Use three-way routing for defect-like reports: run the full loop for non-trivial or evidence-dependent bug reports, crashes, regressions, and unexpected behavior; handle obvious one-step fixes directly without the loop; ask for reproduction steps, evidence, logs, expected-vs-actual behavior, and environment details before starting the loop when a report lacks enough information to frame verifiable criteria.
 
+Use the same ai model type as you are in.
+
 ## Loop overview
 
 ```

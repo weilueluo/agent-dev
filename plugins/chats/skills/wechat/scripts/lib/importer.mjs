@@ -30,9 +30,11 @@ import { readdirSync, existsSync, statSync } from 'fs';
 import { join, basename } from 'path';
 import { homedir } from 'os';
 import { insertMessages } from './db.mjs';
+import { findAssociatedMediaFiles } from './media.mjs';
+import { extractSenderWxid } from './protobuf.mjs';
 
 // WeChat message type code → our type string
-const TYPE_MAP = {
+export const TYPE_MAP = {
   1: 'text',
   3: 'image',
   34: 'voice',
@@ -46,7 +48,7 @@ const TYPE_MAP = {
 };
 
 // SubType for Type=49 (app messages)
-const APP_SUBTYPE_MAP = {
+export const APP_SUBTYPE_MAP = {
   6: 'file',
   5: 'link',
   8: 'sticker',
@@ -58,7 +60,13 @@ const APP_SUBTYPE_MAP = {
 
 /**
  * Auto-detect WeChat data directories on Windows.
- * Returns an array of paths like C:\Users\X\Documents\WeChat Files\wxid_xxx
+ * Returns an array of paths like C:\Users\X\Documents\WeChat Files\wxid_xxx.
+ *
+ * Accepts either layout:
+ *   - 3.x: <wxid>/Msg/Multi/MSG*.db
+ *   - 4.x: <wxid>/Msg/MSG*.db (Multi/ may exist but be empty)
+ * Detection: any subdirectory under WeChat Files\<wxid>\Msg that contains a
+ * MSG*.db file (or the Msg/Multi subdir).
  */
 export function autoDetectPaths() {
   const candidates = [];
@@ -75,17 +83,18 @@ export function autoDetectPaths() {
     try {
       const entries = readdirSync(docsDir, { withFileTypes: true });
       for (const entry of entries) {
-        if (entry.isDirectory() && (entry.name.startsWith('wxid_') || entry.name.startsWith('wxi'))) {
-          const msgDir = join(docsDir, entry.name, 'Msg', 'Multi');
-          if (existsSync(msgDir)) {
-            candidates.push(join(docsDir, entry.name));
-          }
+        if (!entry.isDirectory()) continue;
+        if (!entry.name.startsWith('wxid_') && !entry.name.startsWith('wxi')) continue;
+        const accountDir = join(docsDir, entry.name);
+        const msgDir = join(accountDir, 'Msg');
+        if (!existsSync(msgDir)) continue;
+        if (findMsgDbs(accountDir).length > 0) {
+          candidates.push(accountDir);
         }
       }
     } catch { /* ignore permission errors */ }
   }
 
-  // Also check if WeChat stores in a custom location via registry (skip for now)
   return candidates;
 }
 
@@ -128,26 +137,41 @@ function loadContacts(microMsgPath) {
 }
 
 /**
- * Find all MSG*.db files in a directory.
- * Supports both nested (wechatDir/Msg/Multi/) and flat (decrypted dir) layouts.
+ * Find all MSG*.db files in a WeChat account directory.
+ * Searches in priority order:
+ *   1. <dir>/Msg/Multi/  (3.x layout)
+ *   2. <dir>/Msg/        (4.x layout)
+ *   3. <dir>/            (decrypted dir or flat layout)
+ * Returns the first directory that contains MSG*.db files.
  */
-function findMsgDbs(dir) {
-  // Try nested layout first
-  const multiDir = join(dir, 'Msg', 'Multi');
-  const searchDir = existsSync(multiDir) ? multiDir : dir;
+export function findMsgDbs(dir) {
+  if (!existsSync(dir)) return [];
 
-  if (!existsSync(searchDir)) return [];
+  const candidates = [
+    join(dir, 'Msg', 'Multi'),
+    join(dir, 'Msg'),
+    dir,
+  ];
 
-  return readdirSync(searchDir)
-    .filter(f => /^MSG\d*\.db$/i.test(f))
-    .map(f => join(searchDir, f))
-    .sort();
+  for (const searchDir of candidates) {
+    if (!existsSync(searchDir)) continue;
+    let entries;
+    try {
+      entries = readdirSync(searchDir).filter(f => /^MSG\d*\.db$/i.test(f));
+    } catch {
+      continue;
+    }
+    if (entries.length > 0) {
+      return entries.map(f => join(searchDir, f)).sort();
+    }
+  }
+  return [];
 }
 
 /**
  * Resolve the type string from WeChat's Type and SubType codes.
  */
-function resolveType(type, subType) {
+export function resolveType(type, subType) {
   if (type === 49 && APP_SUBTYPE_MAP[subType]) {
     return APP_SUBTYPE_MAP[subType];
   }
@@ -159,7 +183,7 @@ function resolveType(type, subType) {
  * For text messages this is the content itself.
  * For XML-based messages, extract a title or description.
  */
-function extractTextPreview(content, type) {
+export function extractTextPreview(content, type) {
   if (!content) return null;
 
   // Plain text
@@ -183,7 +207,7 @@ function extractTextPreview(content, type) {
 /**
  * Try to extract a filename from XML content (for file/app messages).
  */
-function extractFilename(content) {
+export function extractFilename(content) {
   if (!content) return null;
 
   const match = content.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
@@ -268,14 +292,47 @@ function getFileSize(filePath) {
 /**
  * Determine if a StrTalker is a group chat.
  */
-function isGroupChat(talker) {
-  return talker && talker.endsWith('@chatroom');
+export function isGroupChat(talker) {
+  return !!(talker && talker.endsWith('@chatroom'));
+}
+
+/**
+ * Resolve the sender of a message row.
+ * Group messages in WeChat 4.x carry the sender wxid in MSG.BytesExtra (protobuf).
+ * Older 3.x messages had it inline as a `wxid:\n` prefix in StrContent.
+ *
+ * Returns { senderId, content } where `content` is the message body with the
+ * legacy prefix stripped (if present). For 1-on-1 chats, senderId is StrTalker.
+ */
+export function resolveSender(row, isGroup) {
+  if (!isGroup) {
+    return { senderId: row.StrTalker || null, content: row.StrContent };
+  }
+
+  // 4.x: protobuf-encoded BytesExtra
+  const fromBytes = extractSenderWxid(row.BytesExtra);
+  if (fromBytes) {
+    return { senderId: fromBytes, content: row.StrContent };
+  }
+
+  // 3.x legacy: "wxid:\nbody" prefix in StrContent
+  const content = row.StrContent;
+  if (content && content.includes(':\n')) {
+    const colonIdx = content.indexOf(':\n');
+    const candidate = content.slice(0, colonIdx);
+    // Sanity check: looks like a wxid/alias and is shorter than the content.
+    if (/^[a-zA-Z][a-zA-Z0-9_-]{2,63}$/.test(candidate)) {
+      return { senderId: candidate, content: content.slice(colonIdx + 2) };
+    }
+  }
+
+  return { senderId: null, content };
 }
 
 /**
  * Import messages from a single MSG*.db file.
  */
-function importSingleDb(indexDb, msgDbPath, contacts, wechatDir, options = {}) {
+export function importSingleDb(indexDb, msgDbPath, contacts, wechatDir, options = {}) {
   const { skipSelf = true } = options;
 
   let srcDb;
@@ -297,7 +354,7 @@ function importSingleDb(indexDb, msgDbPath, contacts, wechatDir, options = {}) {
   }
 
   const rows = srcDb.prepare(
-    'SELECT localId, MsgSvrID, Type, SubType, IsSender, CreateTime, StrTalker, StrContent FROM MSG ORDER BY CreateTime'
+    'SELECT localId, MsgSvrID, Type, SubType, IsSender, CreateTime, StrTalker, StrContent, BytesExtra FROM MSG ORDER BY CreateTime'
   ).all();
 
   srcDb.close();
@@ -316,24 +373,26 @@ function importSingleDb(indexDb, msgDbPath, contacts, wechatDir, options = {}) {
       const room = isGroup ? (contacts.get(row.StrTalker) || row.StrTalker) : null;
       const roomId = isGroup ? row.StrTalker : null;
 
-      // For group messages, the actual sender is often embedded in content
-      let sender = null;
-      let senderId = null;
-      let content = row.StrContent;
-
-      if (isGroup && content && content.includes(':\n')) {
-        const colonIdx = content.indexOf(':\n');
-        senderId = content.slice(0, colonIdx);
-        content = content.slice(colonIdx + 2);
-        sender = contacts.get(senderId) || senderId;
-      } else if (!isGroup) {
-        sender = contacts.get(row.StrTalker) || row.StrTalker;
-        senderId = row.StrTalker;
-      }
+      const { senderId, content } = resolveSender(row, isGroup);
+      const sender = senderId ? (contacts.get(senderId) || senderId) : null;
 
       const textPreview = extractTextPreview(content, row.Type);
       const filename = resolvedType === 'file' ? extractFilename(content) : null;
-      const mediaPath = findMediaPath(wechatDir, row, resolvedType);
+      const mediaCandidates = findAssociatedMediaFiles(
+        {
+          id: null,
+          source_id: String(row.MsgSvrID || row.localId),
+          timestamp: row.CreateTime,
+          sender_id: senderId,
+          room_id: roomId,
+          type: resolvedType,
+          filename,
+          media_path: null,
+        },
+        { mediaDir: wechatDir, rawRow: row },
+      );
+      const mediaPath = mediaCandidates.find((candidate) => candidate.exists)?.absolutePath
+        || findMediaPath(wechatDir, row, resolvedType);
       const mediaSize = getFileSize(mediaPath);
 
       batch.push({
@@ -399,6 +458,7 @@ export function importFromDesktop(indexDb, dbDir, options = {}) {
 
   let totalInserted = 0;
   let totalSkipped = 0;
+  let totalHealed = 0;
   let totalErrors = 0;
 
   for (const dbPath of msgDbs) {
@@ -406,8 +466,10 @@ export function importFromDesktop(indexDb, dbDir, options = {}) {
     const result = importSingleDb(indexDb, dbPath, contacts, mediaDir || dbDir, options);
     totalInserted += result.inserted;
     totalSkipped += result.skipped;
+    totalHealed += result.healed || 0;
     totalErrors += result.errors;
-    console.error(`    → ${result.inserted} new, ${result.skipped} duplicates, ${result.errors} errors`);
+    const healedSeg = result.healed ? `, ${result.healed} healed` : '';
+    console.error(`    → ${result.inserted} new, ${result.skipped} duplicates${healedSeg}, ${result.errors} errors`);
   }
 
   // Update import record
@@ -418,6 +480,7 @@ export function importFromDesktop(indexDb, dbDir, options = {}) {
   return {
     imported: totalInserted,
     skipped: totalSkipped,
+    healed: totalHealed,
     errors: totalErrors,
     databases: msgDbs.length,
     contacts: contacts.size,

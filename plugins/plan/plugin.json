@@ -8,6 +8,5 @@
   },
   "license": "MIT",
   "keywords": ["planning", "feature-design", "clarification", "requirements", "specification"],
-  "category": "development",
-  "skills": "skills/"
+  "category": "development"
 }

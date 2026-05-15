@@ -23,10 +23,20 @@ This shows a QR code — scan it with your WhatsApp mobile app to link.
 
 ### WeChat
 
-The wechat skill reads WeChat desktop's local database files (Windows). First import:
+The wechat skill reads WeChat desktop's local database files (Windows). Search
+auto-refreshes by default — `pip install pywxdump` and keep WeChat running for
+the live key extraction. To pre-warm the index manually:
 
 ```
-node scripts/wechat.mjs import --auto-detect
+node scripts/wechat.mjs refresh --force --json
+```
+
+Run the test suite (no WeChat needed):
+
+```
+cd plugins/chats/skills/wechat/scripts
+npm install
+npm test
 ```
 
 Requires Node.js v18+ and WeChat desktop to have been used on the machine.

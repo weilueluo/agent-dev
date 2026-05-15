@@ -1,46 +1,37 @@
 ---
 name: drive
-description: "Use when the user wants to use Google Drive through the Google Workspace Drive MCP server: search files, read or download file content, inspect metadata or permissions, list recent files, or create files. Don't use for Gmail, raw Drive API scripting, local filesystem tasks, or document editing unrelated to Drive access."
-version: 1.0.0
+description: "Use when the user wants to use Google Drive through the in-repo Google Workspace CLI wrapper: search files, read or download file content, inspect metadata or permissions, list recent files, or create files. Don't use for Gmail or local filesystem-only tasks."
+version: 2.0.0
 ---
 
-# Drive MCP
+# Drive CLI
 
-Use the `drive` MCP server for Google Drive tasks. The plugin registers Google's remote Drive MCP endpoint:
+Use the `google-workspace-cli` skill and bundled Go wrapper for Google Drive tasks. The wrapper is loaded on demand and uses persistent Google credentials.
 
-```json
-{
-  "mcpServers": {
-    "drive": {
-      "type": "http",
-      "url": "https://drivemcp.googleapis.com/mcp/v1"
-    }
-  }
-}
-```
+Wrapper path: `plugins\google\skills\google-workspace-cli\google-workspace`
 
 ## Operating rules
 
-- Prefer Drive MCP tools over raw Drive API scripts.
-- Do not create project-level `.mcp.json` files for Drive; this plugin owns the server configuration.
+- Prefer the bundled Go wrapper over raw Drive API scripts.
+- Do not create project-level `.mcp.json` files for Drive.
 - Never write OAuth client secrets, access tokens, refresh tokens, file contents, or personal data to plugin files.
 - Use search and metadata tools before reading or downloading file contents.
 - Download only files relevant to the user's request.
 - Create files only when the user explicitly asks.
+- Prefer JSON output from the wrapper and write large downloaded/exported content to user-approved local paths.
 
 ## Setup prerequisites
 
-If the `drive` tools are unavailable or authentication fails, tell the user to complete the official Google setup:
+If the wrapper is unavailable or authentication fails, tell the user to complete one-time Google auth:
 
 1. Enable `drive.googleapis.com`.
-2. Enable `drivemcp.googleapis.com`.
-3. Configure OAuth consent for the Drive MCP app.
-4. Add only these scopes unless the user requests more:
+2. Configure OAuth consent or Application Default Credentials for the local CLI.
+3. Add only these scopes unless the user requests more:
    - `https://www.googleapis.com/auth/drive.readonly`
    - `https://www.googleapis.com/auth/drive.file`
-5. Create OAuth client credentials for the MCP client.
-6. Authenticate the `drive` MCP server through the MCP flow when prompted.
+4. Run `gcloud auth application-default login --scopes=https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/drive.file` or configure the wrapper's documented credential environment.
+5. Re-run the wrapper auth check. Do not launch auth flows unexpectedly during normal task execution.
 
-## Expected tools
+## Expected commands
 
-After authentication, the server can expose tools such as `create_file`, `download_file_content`, `get_file_metadata`, `get_file_permissions`, `list_recent_files`, `read_file_content`, and `search_files`.
+The wrapper supports Drive operations such as `drive search`, `drive recent`, `drive metadata`, `drive permissions`, `drive download`, `drive export`, and `drive create`.

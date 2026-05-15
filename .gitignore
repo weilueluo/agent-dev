@@ -7,6 +7,13 @@ Thumbs.db
 .env
 .env.*
 
+# Provider CLI local state
+.vercel/
+.railway/
+.google-workspace/
+supabase/.branches/
+supabase/.temp/
+
 # Go build artifacts
 *.exe
 *.exe~

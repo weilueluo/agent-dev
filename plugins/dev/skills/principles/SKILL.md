@@ -10,9 +10,9 @@ version: 1.0.0
 
 ## Test-Centric
 
-Verification is ground truth, not code. Write tests first when interfaces are known. Decompose into small, verifiable units. Prefer deterministic wrappers around nondeterministic systems.
+Verification is ground truth, not code. Write tests first when interfaces are known. Decompose into small, verifiable units, keep it DRY and SOLID. Prefer deterministic wrappers around nondeterministic systems.
 
-- Examples: property-based tests, invariant checks, fuzz testing
+- Examples: property-based tests, invariant checks, fuzz testing, tdd
 - Exceptions: scaffolding, exploratory spikes, docs-only changes — add tests once the interface stabilizes
 
 ## Clear Boundary
@@ -28,11 +28,11 @@ Parse, don't validate. Define interfaces, types, and contracts. Enforce schemas 
 
 ## Observability
 
-Log structured, actionable information — state, metadata, request parameters, warnings, errors. Never log secrets or PII.
+Log structured, actionable information — state, metadata, request parameters, warnings, errors, document where these things will be, they should be visible to you (ai agent) with fresh context reading AGENTS.md.
 
 ## Feedback Loop
 
-Leave traces for future agents: code comments, specifications, history, corrections. Limit noise.
+Leave traces for future agents: code comments, specifications, history, corrections, logs, runs. Limit noise.
 
 ## Safe Automation
 

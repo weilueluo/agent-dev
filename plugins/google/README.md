@@ -1,44 +1,30 @@
 # google
 
-Google Workspace integrations for remote MCP access.
+Google Workspace integrations for on-demand CLI access.
 
 ## Components
 
 | Component | Description |
 |-----------|-------------|
-| `.mcp.json` | Registers Google Workspace remote MCP servers for Gmail (`gmail`) and Drive (`drive`) |
-| `skills/gmail` | Guidance for using Gmail MCP tools safely |
-| `skills/drive` | Guidance for using Drive MCP tools safely |
+| `skills/google-workspace-cli` | Bundled Go CLI wrapper for Gmail and Drive |
+| `skills/gmail` | Guidance for using Gmail through the wrapper safely |
+| `skills/drive` | Guidance for using Drive through the wrapper safely |
 
-## MCP servers
+## Google Workspace CLI
 
-```json
-{
-  "mcpServers": {
-    "gmail": {
-      "type": "http",
-      "url": "https://gmailmcp.googleapis.com/mcp/v1"
-    },
-    "drive": {
-      "type": "http",
-      "url": "https://drivemcp.googleapis.com/mcp/v1"
-    }
-  }
-}
-```
+This plugin does not register always-on Gmail or Drive servers. Use the bundled Go wrapper from `skills\google-workspace-cli\google-workspace` when Gmail or Drive tasks are requested.
 
 ## Google setup
 
-Before the MCP tools can access data, configure Google Cloud from the official Google Workspace MCP guides:
+Before the wrapper can access data, configure Google Cloud and local credentials:
 
 1. Enable the product APIs: `gmail.googleapis.com` and `drive.googleapis.com`.
-2. Enable the MCP services: `gmailmcp.googleapis.com` and `drivemcp.googleapis.com`.
-3. Configure the OAuth consent screen.
-4. Add the required scopes:
-   - Gmail: `https://www.googleapis.com/auth/gmail.readonly`, `https://www.googleapis.com/auth/gmail.compose`
+2. Configure the OAuth consent screen or Application Default Credentials for local CLI use.
+3. Add the required scopes:
+   - Gmail: `https://www.googleapis.com/auth/gmail.readonly`, `https://www.googleapis.com/auth/gmail.compose`, `https://www.googleapis.com/auth/gmail.modify` for label changes
    - Drive: `https://www.googleapis.com/auth/drive.readonly`, `https://www.googleapis.com/auth/drive.file`
-5. Create OAuth client credentials appropriate for your MCP client.
-6. Authenticate the `gmail` and `drive` servers when prompted by the MCP flow.
+4. Run `gcloud auth application-default login --scopes=<scopes>` or set `GOOGLE_APPLICATION_CREDENTIALS` for an approved CI/service-account workflow.
+5. Run the wrapper's `auth-check` command. It should fail fast with setup instructions instead of launching browser auth during normal task execution.
 
 ## Installation
 

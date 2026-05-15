@@ -8,7 +8,5 @@
   },
   "license": "MIT",
   "keywords": ["documents", "docx", "pdf", "pptx", "xlsx", "office", "word", "excel", "powerpoint"],
-  "category": "documents",
-  "skills": "skills/",
-  "hooks": "hooks.json"
+  "category": "documents"
 }

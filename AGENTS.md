@@ -19,9 +19,9 @@ All work follows `dev:principles`. Read before every task.
 ├── plugins/                # Agent skill plugins
 │   ├── deliver/            # Generic issue-resolution loop
 │   ├── plan/               # Feature design clarification
-│   ├── dev/                # Engineering principles, frontend, CodePen
+│   ├── dev/                # Engineering principles, frontend, OCR, CodePen
 │   ├── chats/              # Chat platform integrations
-│   ├── google/             # Google Workspace integrations and MCP servers
+│   ├── google/             # Google Workspace integrations and CLI wrapper
 │   └── documents/          # Document processing skills
 ├── external_plugins/       # Third-party plugins
 └── .github/plugin/         # Marketplace config
@@ -34,9 +34,9 @@ All work follows `dev:principles`. Read before every task.
 |--------|-----------|-------------|
 | [`deliver`](plugins/deliver/) | [AGENTS.md](plugins/deliver/AGENTS.md) | Generic issue-resolution loop — plan, work, review, converge |
 | [`plan`](plugins/plan/) | [AGENTS.md](plugins/plan/AGENTS.md) | Transforms vague ideas into complete feature designs |
-| [`dev`](plugins/dev/) | [AGENTS.md](plugins/dev/AGENTS.md) | Engineering principles, frontend design, CodePen, browser logs, Playwright and platform MCP |
+| [`dev`](plugins/dev/) | [AGENTS.md](plugins/dev/AGENTS.md) | Engineering principles, frontend design, OCR text extraction, CodePen, browser logs, Playwright and provider CLIs |
 | [`chats`](plugins/chats/) | [AGENTS.md](plugins/chats/AGENTS.md) | WhatsApp messaging, WeChat local search |
-| [`google`](plugins/google/) | [AGENTS.md](plugins/google/AGENTS.md) | Google Workspace MCP for Gmail and Drive |
+| [`google`](plugins/google/) | [AGENTS.md](plugins/google/AGENTS.md) | Google Workspace CLI wrapper for Gmail and Drive |
 | [`documents`](plugins/documents/) | [AGENTS.md](plugins/documents/AGENTS.md) | Word, PDF, PowerPoint, Excel processing |
 
 ## Key Principles

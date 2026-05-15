@@ -61,11 +61,19 @@ out_dir = r"${DECRYPTED_DIR}"
 os.makedirs(out_dir, exist_ok=True)
 
 targets = []
-msg_dir = os.path.join(wx_dir, "Msg", "Multi")
-if os.path.isdir(msg_dir):
-    for f in sorted(os.listdir(msg_dir)):
-        if f.upper().startswith("MSG") and f.endswith(".db"):
+# Search MSG*.db in Msg/Multi (3.x), then Msg/ (4.x). Pick the directory that has files.
+for sub in ("Msg/Multi", "Msg"):
+    msg_dir = os.path.join(wx_dir, sub)
+    if not os.path.isdir(msg_dir):
+        continue
+    found = sorted(
+        f for f in os.listdir(msg_dir)
+        if f.upper().startswith("MSG") and f.endswith(".db") and "-" not in f
+    )
+    if found:
+        for f in found:
             targets.append((os.path.join(msg_dir, f), os.path.join(out_dir, f)))
+        break
 
 micro = os.path.join(wx_dir, "Msg", "MicroMsg.db")
 if os.path.isfile(micro):

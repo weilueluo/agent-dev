@@ -5,17 +5,23 @@
  *
  * Commands:
  *   import   Import messages from WeChat desktop DB
- *   search   Search the local message index
+ *   search   Search the local message index (auto-refreshes by default)
  *   download Look up a message/media by row ID
+ *   export   Export messages and associated cached media
  *   status   Show index stats
+ *   decrypt  Decrypt WeChat DBs to ~/.wechat/decrypted_db
+ *   refresh  Decrypt + import in one step (with throttle)
  */
 
 import { program } from 'commander';
+import { existsSync } from 'fs';
 import { openDb, closeDb, getStats } from './lib/db.mjs';
 import { importFromDesktop, autoDetectPaths } from './lib/importer.mjs';
 import { searchMessages, formatResults, formatResultsJson } from './lib/search.mjs';
 import { lookupMedia, formatLookup } from './lib/media.mjs';
+import { exportMessages, formatExportSummary } from './lib/exporter.mjs';
 import { autoDecrypt, getDecryptedDir } from './lib/decrypt.mjs';
+import { refreshIndex } from './lib/refresh.mjs';
 import dayjs from 'dayjs';
 
 program
@@ -76,7 +82,8 @@ program
       } else {
         for (const r of results) {
           console.log(`\nImport complete: ${r.path}`);
-          console.log(`  ${r.imported} messages imported, ${r.skipped} duplicates skipped, ${r.errors} errors`);
+          const healedSeg = r.healed ? `, ${r.healed} healed` : '';
+          console.log(`  ${r.imported} messages imported, ${r.skipped} duplicates skipped${healedSeg}, ${r.errors} errors`);
           console.log(`  ${r.databases} DB file(s), ${r.contacts} contacts loaded`);
         }
       }
@@ -91,11 +98,14 @@ program
 // ─── search ─────────────────────────────────────────────────────────
 program
   .command('search [query]')
-  .description('Search the local message index')
+  .description('Search the local message index (auto-refreshes by default)')
   .option('--type <type>', 'Filter by message type (text, image, file, video, voice, link, sticker)')
   .option('--room <name>', 'Filter by room/group name')
   .option('--limit <n>', 'Max results', '50')
   .option('--offset <n>', 'Skip first N results', '0')
+  .option('--no-refresh', 'Skip the auto pull-then-search refresh step')
+  .option('--force-refresh', 'Bypass the refresh throttle and re-decrypt + import')
+  .option('--refresh-throttle <seconds>', 'Skip refresh if last import is fresher than this', '30')
   .option('--json', 'Output as JSON')
   .action((query, opts) => {
     try {
@@ -111,6 +121,23 @@ program
         process.exit(1);
       }
 
+      // Refresh first (unless explicitly disabled). Failures are surfaced but
+      // do not block search — the existing index is still queryable.
+      let refreshInfo = { refreshed: false, reason: 'disabled' };
+      if (opts.refresh !== false) {
+        const throttle = parseInt(opts.refreshThrottle, 10);
+        refreshInfo = refreshIndex(db, {
+          force: !!opts.forceRefresh,
+          throttleSeconds: Number.isFinite(throttle) ? throttle : 30,
+        });
+        if (refreshInfo.reason !== 'ok' && refreshInfo.reason !== 'throttled') {
+          console.error(`  refresh: ${refreshInfo.reason}${refreshInfo.error ? ' — ' + refreshInfo.error : ''}`);
+        } else if (refreshInfo.refreshed) {
+          const healedSeg = refreshInfo.healed ? `, healed ${refreshInfo.healed}` : '';
+          console.error(`  refresh: imported ${refreshInfo.imported}, skipped ${refreshInfo.skipped}${healedSeg}`);
+        }
+      }
+
       const results = searchMessages(db, query, {
         type: opts.type,
         room: opts.room,
@@ -119,7 +146,10 @@ program
       });
 
       if (opts.json) {
-        console.log(JSON.stringify(formatResultsJson(results), null, 2));
+        console.log(JSON.stringify({
+          refresh: refreshInfo,
+          results: formatResultsJson(results),
+        }, null, 2));
       } else {
         console.log(formatResults(results));
       }
@@ -152,6 +182,86 @@ program
       closeDb();
     } catch (err) {
       console.error(`Download lookup failed: ${err.message}`);
+      process.exit(1);
+    }
+  });
+
+// ─── export ──────────────────────────────────────────────────────────
+program
+  .command('export [query]')
+  .description('Export messages plus associated cached media files')
+  .requiredOption('--out <dir>', 'Destination directory for messages, transcript, manifests, and media/')
+  .option('--room <name>', 'Filter by room/group name')
+  .option('--type <type>', 'Filter by message type (text, image, file, video, voice, link, sticker)')
+  .option('--limit <n>', 'Max messages to export (use 0 for no cap)', '1000')
+  .option('--offset <n>', 'Skip first N results', '0')
+  .option('--all', 'Allow exporting without a query, room, or type filter')
+  .option('--media-dir <dir>', 'Original WeChat account dir used to resolve cached media files')
+  .option('--source-db-dir <dir>', 'Decrypted DB directory used to recover media paths from BytesExtra')
+  .option('--no-media', 'Export messages only; do not copy media files')
+  .option('--no-refresh', 'Skip the auto pull-then-export refresh step')
+  .option('--force-refresh', 'Bypass the refresh throttle and re-decrypt + import before export')
+  .option('--refresh-throttle <seconds>', 'Skip refresh if last import is fresher than this', '30')
+  .option('--json', 'Output as JSON')
+  .action((query, opts) => {
+    try {
+      if (!query && !opts.type && !opts.room && !opts.all) {
+        const msg = 'Provide a search query, --type, --room, or --all to export.';
+        if (opts.json) console.log(JSON.stringify({ error: msg }));
+        else console.error(msg);
+        process.exit(1);
+      }
+
+      const db = openDb();
+      let refreshInfo = { refreshed: false, reason: 'disabled' };
+      if (opts.refresh !== false) {
+        const throttle = parseInt(opts.refreshThrottle, 10);
+        refreshInfo = refreshIndex(db, {
+          force: !!opts.forceRefresh,
+          throttleSeconds: Number.isFinite(throttle) ? throttle : 30,
+        });
+        if (refreshInfo.reason !== 'ok' && refreshInfo.reason !== 'throttled') {
+          console.error(`  refresh: ${refreshInfo.reason}${refreshInfo.error ? ' — ' + refreshInfo.error : ''}`);
+        } else if (refreshInfo.refreshed) {
+          const healedSeg = refreshInfo.healed ? `, healed ${refreshInfo.healed}` : '';
+          console.error(`  refresh: imported ${refreshInfo.imported}, skipped ${refreshInfo.skipped}${healedSeg}`);
+        }
+      }
+
+      const detectedAccounts = opts.mediaDir ? [] : autoDetectPaths();
+      const sourceDbDir = opts.sourceDbDir
+        || refreshInfo.decryptedDir
+        || (existsSync(getDecryptedDir()) ? getDecryptedDir() : null);
+      const mediaDir = opts.mediaDir
+        || refreshInfo.wxDir
+        || detectedAccounts[0]
+        || null;
+
+      const result = exportMessages(db, query, {
+        outDir: opts.out,
+        room: opts.room,
+        type: opts.type,
+        limit: parseInt(opts.limit, 10),
+        offset: parseInt(opts.offset, 10),
+        includeMedia: opts.media !== false,
+        mediaDir,
+        sourceDbDir,
+      });
+      result.refresh = refreshInfo;
+      result.sources = {
+        media_dir: mediaDir,
+        source_db_dir: sourceDbDir,
+      };
+
+      if (opts.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else {
+        console.log(formatExportSummary(result));
+      }
+
+      closeDb();
+    } catch (err) {
+      console.error(`Export failed: ${err.message}`);
       process.exit(1);
     }
   });
@@ -201,6 +311,46 @@ program
       closeDb();
     } catch (err) {
       console.error(`Status check failed: ${err.message}`);
+      process.exit(1);
+    }
+  });
+
+// ─── refresh ────────────────────────────────────────────────────────
+program
+  .command('refresh')
+  .description('Decrypt and import the latest WeChat messages (with throttle).')
+  .option('--force', 'Bypass the throttle window')
+  .option('--throttle <seconds>', 'Skip if last successful import is fresher than this', '30')
+  .option('--json', 'Output as JSON')
+  .action((opts) => {
+    try {
+      const db = openDb();
+      const throttle = parseInt(opts.throttle, 10);
+      const result = refreshIndex(db, {
+        force: !!opts.force,
+        throttleSeconds: Number.isFinite(throttle) ? throttle : 30,
+      });
+
+      if (opts.json) {
+        console.log(JSON.stringify(result, null, 2));
+      } else if (result.refreshed) {
+        const healedSeg = result.healed ? `, healed ${result.healed}` : '';
+        console.log(`Refreshed: imported ${result.imported}, skipped ${result.skipped}${healedSeg}`);
+        console.log(`  decrypted dir: ${result.decryptedDir}`);
+        console.log(`  WeChat dir:    ${result.wxDir}`);
+      }else {
+        console.log(`Skipped: ${result.reason}${result.error ? ' — ' + result.error : ''}`);
+        if (result.lastFinishedAt) {
+          console.log(`  last successful import: ${result.lastFinishedAt} (${result.ageSeconds}s ago)`);
+        }
+      }
+
+      closeDb();
+      // Non-zero exit if refresh was attempted and failed (helps shell scripts).
+      const failed = !result.refreshed && /failed|no-account|lock-held/.test(result.reason);
+      if (failed) process.exit(2);
+    } catch (err) {
+      console.error(`Refresh failed: ${err.message}`);
       process.exit(1);
     }
   });

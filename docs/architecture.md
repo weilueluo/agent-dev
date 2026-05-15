@@ -114,7 +114,7 @@ agent-dev/
 │   ├── plan/                          # Feature design clarification
 │   ├── dev/                           # Engineering principles, frontend
 │   ├── chats/                         # Chat platform integrations
-│   ├── google/                        # Google Workspace integrations and MCP servers
+│   ├── google/                        # Google Workspace integrations and CLI wrapper
 │   └── documents/                     # Document processing
 ├── external_plugins/                  # Third-party plugins
 ├── tools/                             # Shared tooling
